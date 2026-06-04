@@ -335,4 +335,5 @@ const matchedPrefix = triggerPrefixes.find(prefix =>
   }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+console.log("TOKEN EXISTS:", !!config.DISCORD_TOKEN);
+client.login(config.DISCORD_TOKEN);
