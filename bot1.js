@@ -1,3 +1,4 @@
+require('dotenv').config();
 const config = require("./config1.js");
 const messages = require("./messages1.js");
 const {
@@ -335,5 +336,6 @@ const matchedPrefix = triggerPrefixes.find(prefix =>
   }
 });
 
-loadSettings();
-client.login(config.DISCORD_TOKEN);
+require('dotenv').config();
+
+client.login(process.env.DISCORD_TOKEN);
