@@ -1,4 +1,3 @@
-require('dotenv').config();
 const config = require("./config1.js");
 const messages = require("./messages1.js");
 const {
