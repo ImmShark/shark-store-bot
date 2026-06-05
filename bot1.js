@@ -188,20 +188,10 @@ client.on("interactionCreate", async (interaction) => {
     if (commandName === "banggia") {
       await sendPriceList(interaction);
     }
-    if (commandName === "qr") {
-  const embed = new EmbedBuilder()
-    .setTitle("📌 THÔNG TIN CHUYỂN KHOẢN")
-    .setColor("#00ff99")
-    .setThumbnail("LINK_LOGO")
-    .setImage("LINK_QR")
-    .addFields(
-      { name: "🏦 Ngân Hàng:", value: "```MB BANK```", inline: true },
-      { name: "💳 Số Tài Khoản:", value: "```0328206839```", inline: true },
-      { name: "👤 Chủ Tài Khoản:", value: "```LE HOANG VU```", inline: true },
-      { name: "📝 Nội Dung:", value: "```SHARKSTORE```", inline: true }
-    );
-
-  await interaction.reply({ embeds: [embed] });
+     if (interaction.isChatInputCommand()) {
+  const { commandName } = interaction;
+  if (commandName === "qr") {
+  await sendPriceList(interaction);
 }
 
     if (commandName === "setup-legit") {
