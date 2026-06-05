@@ -195,9 +195,9 @@ if (commandName === "qr") {
     .setThumbnail(
         "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a238b80&is=6a223a00&hm=71cf0d3bb9c37b681ecba2fe634b865789bcef8195cd6206bc7568d934fcd0cd&=&width=623&height=533"
       ) // logo nhỏ
-      .setImage(
-        "https://media.discordapp.net/attachments/1161326028682170489/1512350783511855144/635002420_2099748023930273_8969084125919827184_n.jpg?ex=6a23c5ec&is=6a22746c&hm=53d4547240c6cbff44df18fdca6fb5c5dafd24a2de80745169a068166c05c768&=&format=webp&width=930&height=930"
-      ) // QR code
+.setFooter({
+  text: "VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
+})
       .setDescription(`
 🏦 **Ngân Hàng**
 \`\`\`
@@ -219,9 +219,9 @@ LE HOANG VU
 SHARK STORE
 \`\`\`
 `)
-      .setFooter({
-  text: "VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
-});
+.setImage(
+        "https://media.discordapp.net/attachments/1161326028682170489/1512350783511855144/635002420_2099748023930273_8969084125919827184_n.jpg?ex=6a23c5ec&is=6a22746c&hm=53d4547240c6cbff44df18fdca6fb5c5dafd24a2de80745169a068166c05c768&=&format=webp&width=930&height=930"
+);
 
   await interaction.reply({ embeds: [embed] });
 }
