@@ -21,8 +21,9 @@ module.exports = {
         { name: "👤 Chủ Tài Khoản:", value: "```LE HOANG VU```", inline: true },
         { name: "📝 Nội Dung:", value: "```SHARKSTORE```", inline: true }
       )
-      .setFooter({ text: "**VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢNG**" });
-
+      .setFooter({
+  text: "***VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN***"
+});
     await interaction.reply({ embeds: [embed] });
   },
 };

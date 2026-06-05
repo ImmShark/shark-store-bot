@@ -1,5 +1,8 @@
 const config = require("./config1.js");
+console.log("ENV TOKEN =", process.env.DISCORD_TOKEN);
+console.log("CONFIG TOKEN =", config.DISCORD_TOKEN);
 const messages = require("./messages1.js");
+const qr = require("./qr.js");
 const {
   Client,
   GatewayIntentBits,
@@ -111,6 +114,9 @@ client.once("ready", async () => {
         .setName("banggia")
         .setDescription("Hiển thị bảng giá dịch vụ của shop."),
       new SlashCommandBuilder()
+    .setName("qr")
+    .setDescription("Hiển thị thông tin chuyển khoản + QR code"),
+      new SlashCommandBuilder()
         .setName("setup-legit")
         .setDescription("[Admin] Thiết lập kênh để gửi tin nhắn legit.")
         .addChannelOption((option) =>
@@ -182,6 +188,21 @@ client.on("interactionCreate", async (interaction) => {
     if (commandName === "banggia") {
       await sendPriceList(interaction);
     }
+    if (commandName === "qr") {
+  const embed = new EmbedBuilder()
+    .setTitle("📌 THÔNG TIN CHUYỂN KHOẢN")
+    .setColor("#00ff99")
+    .setThumbnail("LINK_LOGO")
+    .setImage("LINK_QR")
+    .addFields(
+      { name: "🏦 Ngân Hàng:", value: "```MB BANK```", inline: true },
+      { name: "💳 Số Tài Khoản:", value: "```0328206839```", inline: true },
+      { name: "👤 Chủ Tài Khoản:", value: "```LE HOANG VU```", inline: true },
+      { name: "📝 Nội Dung:", value: "```SHARKSTORE```", inline: true }
+    );
+
+  await interaction.reply({ embeds: [embed] });
+}
 
     if (commandName === "setup-legit") {
       if (
@@ -335,5 +356,7 @@ const matchedPrefix = triggerPrefixes.find(prefix =>
   }
 });
 
+console.log("TOKEN:", process.env.DISCORD_TOKEN);
+console.log("TOKEN EXISTS:", !!process.env.DISCORD_TOKEN);
 console.log("TOKEN EXISTS:", !!config.DISCORD_TOKEN);
 client.login(config.DISCORD_TOKEN);
