@@ -10,18 +10,18 @@ module.exports = {
       .setTitle("📌 THÔNG TIN CHUYỂN KHOẢN")
       .setColor("#00ff99")
       .setThumbnail(
-        "https://media.discordapp.net/attachments/1160008472893603871/1407258499460763648/standard_4.gif?ex=68a5731b&is=68a4219b&hm=32814d35ada3ba9279d4e240db250249f50e684f3cf9e88a0381d1e669478117&=&width=320&height=320"
+        "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a238b80&is=6a223a00&hm=71cf0d3bb9c37b681ecba2fe634b865789bcef8195cd6206bc7568d934fcd0cd&=&width=623&height=533"
       ) // logo nhỏ
       .setImage(
-        "https://media.discordapp.net/attachments/1160008472893603871/1407424725499773029/IMG_8991.jpg?ex=68a60deb&is=68a4bc6b&hm=e2127158e8704c50765e3daf8257e87faed48bff420849912ee01400e3c9ee0d&=&format=webp&width=770&height=930"
+        "https://media.discordapp.net/attachments/1161326028682170489/1512350783511855144/635002420_2099748023930273_8969084125919827184_n.jpg?ex=6a23c5ec&is=6a22746c&hm=53d4547240c6cbff44df18fdca6fb5c5dafd24a2de80745169a068166c05c768&=&format=webp&width=930&height=930"
       ) // QR code
       .addFields(
-        { name: "🏦 Ngân Hàng:", value: "MB BANK", inline: true },
-        { name: "💳 Số Tài Khoản:", value: "`27110466668888`", inline: true },
-        { name: "👤 Chủ Tài Khoản:", value: "LE HOANG VU", inline: true },
-        { name: "📝 Nội Dung:", value: "`SHARKSTORE`", inline: true }
+        { name: "🏦 Ngân Hàng:", value: "```MB BANK```", inline: true },
+        { name: "💳 Số Tài Khoản:", value: "```0328206839```", inline: true },
+        { name: "👤 Chủ Tài Khoản:", value: "```LE HOANG VU```", inline: true },
+        { name: "📝 Nội Dung:", value: "```SHARKSTORE```", inline: true }
       )
-      .setFooter({ text: "Quét QR để thanh toán nhanh chóng" });
+      .setFooter({ text: "**VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢNG**" });
 
     await interaction.reply({ embeds: [embed] });
   },
