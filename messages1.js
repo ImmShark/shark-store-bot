@@ -28,22 +28,22 @@ module.exports = {
         fields: [
           {
             name: "<a:4563paymentnitro:1407393939522322645> L1ch0 Bust L0g1n 2 Tháng:",
-            value: "`PRICE : 130.000đ`",
+            value: "```PRICE : 130.000 VND```",
             inline: false,
           },
           {
             name: "<a:4563paymentnitro:1407393939522322645> L1ch0 Bust L0g1n 4 Tháng:",
-            value: "`PRICE : 230.000đ`",
+            value: "```PRICE : 230.000 VND```",
             inline: false,
           },
           {
             name: "<a:4563paymentnitro:1407393939522322645> L1ch0 Bust L0g1n 6 Tháng:",
-            value: "`PRICE : 350.000đ`",
+            value: "```PRICE : 350.000 VND```",
             inline: false,
           },
           {
             name: "<a:4563paymentnitro:1407393939522322645> L1ch0 Bust L0g1n 1 Năm:",
-            value: "`PRICE : 800.000đ`",
+            value: "```PRICE : 800.000 VND```",
             inline: false,
           },
           
@@ -68,7 +68,7 @@ module.exports = {
         fields: [
           {
             name: "<a:4563paymentnitro:1407393939522322645> L1ch0 Bust Trial 4 Tháng:",
-            value: "`PRICE : 110.000đ`",
+            value: "```PRICE : 110.000 VND```",
             inline: false,
           },
 
@@ -93,42 +93,42 @@ module.exports = {
         fields: [
           {
             name: "<:acherryblossombl:1116689608005124096> ~~66.000 VND~~ → 50.000 VNĐ:",
-            value: "`PRICE : 50.000 VNĐ`",
+            value: "```PRICE : 50.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:acherryblossombl:1116689608005124096> ~~72.000 VND~~ → 60.000 VNĐ:",
-            value: "`PRICE : 60.000đ`",
+            value: "```PRICE : 60.000 VND```",
             inline: false,
           },
                     {
             name: "<:acherryblossombl:1116689608005124096> ~~79.000 VND~~ → 65.000 VNĐ:",
-            value: "`PRICE : 65.000 VNĐ`",
+            value: "```PRICE : 65.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:acherryblossombl:1116689608005124096> ~~92.000 VND~~ → 75.000 VNĐ:",
-            value: "`PRICE : 75.000đ`",
+            value: "```PRICE : 75.000 VND```",
             inline: false,
           },
                     {
             name: "<:acherryblossombl:1116689608005124096> ~~111.000 VND~~ → 85.000 VNĐ:",
-            value: "`PRICE : 85.000 VNĐ`",
+            value: "```PRICE : 85.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:acherryblossombl:1116689608005124096> ~~131.000 VND~~ → 100.000 VNĐ:",
-            value: "`PRICE : 100.000đ`",
+            value: "```PRICE : 100.000 VND```",
             inline: false,
           },
                     {
             name: "<:acherryblossombl:1116689608005124096> ~~141.000 VND~~ → 110.000 VNĐ:",
-            value: "`PRICE : 110.000 VNĐ`",
+            value: "```PRICE : 110.000 VNĐ```",
             inline: false,
           },  
                     {
             name: "<:acherryblossombl:1116689608005124096> ~~189.000 VND~~ → 170.000 VNĐ:",
-            value: "`PRICE : 170.000đ`",
+            value: "```PRICE : 170.000 VND```",
             inline: false,
           },
           
@@ -154,12 +154,12 @@ module.exports = {
         fields: [
           {
             name: "<:35773spotify:1407413986340765787> Spotify Premium 1 Năm Indivadual (Cá Nhân):",
-            value: "`PRICE : 650.000 VNĐ`",
+            value: "```PRICE : 650.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:35773spotify:1407413986340765787> Spotify Premium 1 Năm (Chính Chủ Add Family):",
-            value: "`PRICE : 350.000 VNĐ`",
+            value: "```PRICE : 350.000 VNĐ```",
             inline: false,
           },
           
@@ -185,22 +185,22 @@ module.exports = {
         fields: [
           {
             name: "<:6409youtubegif:1512142884894412870> Youtube Premium 1 Tháng (Family):",
-            value: "`PRICE : 45.000 VNĐ`",
+            value: "```PRICE : 45.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:6409youtubegif:1512142884894412870> Youtube Premium 3 Tháng (Family):",
-            value: "`PRICE : 100.000 VNĐ`",
+            value: "```PRICE : 100.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:6409youtubegif:1512142884894412870> Youtube Premium 6 Tháng (Family):",
-            value: "`PRICE : 180.000 VNĐ`",
+            value: "```PRICE : 180.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:6409youtubegif:1512142884894412870> Youtube Premium 1 Năm (Cá Nhân):",
-            value: "`PRICE : 900.000 VNĐ`",
+            value: "```PRICE : 900.000 VNĐ```",
             inline: false,
           },
           
@@ -226,22 +226,22 @@ module.exports = {
         fields: [
           {
             name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 1 Tháng (Family):",
-            value: "`PRICE : 65.000 VNĐ`",
+            value: "```PRICE : 65.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:9827netflixlogo:1512143036300132382> Netflix Extra Riêng Tư 1 Tháng:",
-            value: "`PRICE : 100.000 VNĐ`",
+            value: "```PRICE : 100.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 6 Tháng:",
-            value: "`PRICE : 400.000 VNĐ`",
+            value: "```PRICE : 400.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 1 Năm (Cá Nhân):",
-            value: "`PRICE : 650.000 VNĐ`",
+            value: "```PRICE : 650.000 VNĐ```",
             inline: false,
           },
           
@@ -267,22 +267,22 @@ module.exports = {
         fields: [
           {
             name: "<:44559newchatgptlogoround:1512143360696127770> Chat GPT Plus 1 Tháng (Cá Nhân):",
-            value: "`PRICE : 500.000 VNĐ (BH 1 THÁNG)`",
+            value: "```PRICE : 500.000 VNĐ (BH 1 THÁNG)```",
             inline: false,
           },
                     {
             name: "<:44559newchatgptlogoround:1512143360696127770> Chat GPT Plus 1 Tháng:",
-            value: "`PRICE : 200.000 VNĐ (KHÔNG BH)`",
+            value: "```PRICE : 200.000 VNĐ (KHÔNG BH)```",
             inline: false,
           },
                     {
             name: "<:44559newchatgptlogoround:1512143360696127770> Chat GPT Plus 1 Tháng (Cấp Acc):",
-            value: "`PRICE : 350.000 VNĐ (BH 1 THÁNG)`",
+            value: "```PRICE : 350.000 VNĐ (BH 1 THÁNG)```",
             inline: false,
           },
                     {
             name: "<:44559newchatgptlogoround:1512143360696127770> Chat GPT Go 6 Tháng:",
-            value: "`PRICE : 350.000 VNĐ (KHÔNG BH)`",
+            value: "```PRICE : 350.000 VNĐ (KHÔNG BH)```",
             inline: false,
           },
           
@@ -308,12 +308,12 @@ module.exports = {
         fields: [
           {
             name: "<:3935googlechrome:1512142425920110602> GO0gle One 2Tb 1 Năm:",
-            value: "`PRICE : 400.000 VNĐ`",
+            value: "```PRICE : 400.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:3935googlechrome:1512142425920110602> GO0gle One 5Tb 1 Năm:",
-            value: "`PRICE : 600.000 VNĐ`",
+            value: "```PRICE : 600.000 VNĐ```",
             inline: false,
           },
           
@@ -339,12 +339,12 @@ module.exports = {
         fields: [
           {
             name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 80Gb 1 Năm (1 Máy):",
-            value: "`PRICE : 600.000 VNĐ`",
+            value: "```PRICE : 600.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 80Gb 1 Năm (2 Máy):",
-            value: "`PRICE : 1.050.000 VNĐ`",
+            value: "```PRICE : 1.050.000 VNĐ```",
             inline: false,
           },
           
@@ -370,12 +370,12 @@ module.exports = {
         fields: [
           {
             name: "<:69836capcut:1407393955762667733> Capcut Pro 1 Tháng (Cá Nhân):",
-            value: "`PRICE : 100.000 VNĐ`",
+            value: "```PRICE : 100.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:69836capcut:1407393955762667733> Capcut Pro 1 Năm Share:",
-            value: "`PRICE : 450.000 VNĐ (1 MÁY)`",
+            value: "```PRICE : 450.000 VNĐ (1 MÁY)```",
             inline: false,
           },
           
@@ -401,17 +401,17 @@ module.exports = {
         fields: [
           {
             name: "<:41448canva:1407393947898216528> Canva Pro 1 Năm:",
-            value: "`PRICE : 100.000 VNĐ`",
+            value: "```PRICE : 100.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:41448canva:1407393947898216528> Canva Pro Trọn Đời (Lifetime):",
-            value: "`PRICE : 400.000 VNĐ`",
+            value: "```PRICE : 400.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:41448canva:1407393947898216528> Canva Edu Trọn Đời (Bảo Hành 1 Năm):",
-            value: "`PRICE : 150.000 VNĐ`",
+            value: "```PRICE : 150.000 VNĐ```",
             inline: false,
           },
           
