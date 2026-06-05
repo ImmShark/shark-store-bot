@@ -220,7 +220,7 @@ SHARK STORE
 \`\`\`
 `)
       .setFooter({
-  text: " ***VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN*** "
+  text: "VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
 });
 
   await interaction.reply({ embeds: [embed] });
