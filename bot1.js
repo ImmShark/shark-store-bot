@@ -336,13 +336,10 @@ const noteInput = new TextInputBuilder()
 
 modal.addComponents(
   new ActionRowBuilder().addComponents(productInput),
-  new ActionRowBuilder().addComponents(noteInput));
+  new ActionRowBuilder().addComponents(noteInput)
+);
 
-    modal.addComponents(
-      new ActionRowBuilder().addComponents(input)
-    );
-
-    await interaction.showModal(modal);
+await interaction.showModal(modal);
   }
 
   if (interaction.customId === "close_ticket") {
@@ -415,16 +412,19 @@ const existingTicket =
       ],
     });
 
-  const closeRow =
-    new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("close_ticket")
-        .setLabel("Đóng Ticket")
-        .setEmoji("🔒")
-        .setStyle(ButtonStyle.Danger)
-    );
+const closeRow =
+  new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("close_ticket")
+      .setLabel("Đóng Ticket")
+      .setEmoji("🔒")
+      .setStyle(ButtonStyle.Danger)
+  );
 
-  const ticketEmbed = new EmbedBuilder()
+const ticketCode =
+  Math.floor(100000 + Math.random() * 900000);
+
+const ticketEmbed = new EmbedBuilder()
   .setColor("#00BFFF")
   .setTitle("Shark Store")
   .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283")
