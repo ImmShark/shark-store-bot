@@ -239,8 +239,8 @@ if (commandName === "ticket") {
     .setColor("#00bfff")
     .setTitle("Shark Store")
     .setDescription(`
-✅ Tạo Ticket Khi Thật Sự Cần Thiết
-✅ Vui Lòng Không Spam Ticket + Ping
+      <:3629shinystar4:1512142399932076223> Tạo Ticket Khi Thật Sự Cần Thiết
+      <:1661shinystar6:1512141829758386226> Vui Lòng Không Spam Ticket + Ping
 `)
     .setImage("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283");
 
@@ -249,13 +249,13 @@ if (commandName === "ticket") {
       new ButtonBuilder()
         .setCustomId("buy_ticket")
         .setLabel("Mua Hàng")
-        .setEmoji("🛒")
+        .setEmoji("<:4439star9:1512142545419899070>")
         .setStyle(ButtonStyle.Danger),
 
       new ButtonBuilder()
         .setCustomId("support_ticket")
         .setLabel("Hỗ Trợ")
-        .setEmoji("🌸")
+        .setEmoji("<:7899shinystar1:1512142913428258867>")
         .setStyle(ButtonStyle.Secondary)
     );
 
@@ -320,7 +320,7 @@ if (interaction.isButton()) {
 
     const modal = new ModalBuilder()
       .setCustomId(interaction.customId)
-      .setTitle("Ani Store");
+      .setTitle("Shark Store");
 
     const input = new TextInputBuilder()
       .setCustomId("reason")
@@ -357,12 +357,14 @@ if (interaction.isModalSubmit()) {
   const reason =
     interaction.fields.getTextInputValue("reason");
 
-  const existingTicket =
-    interaction.guild.channels.cache.find(
-      c =>
-        c.name ===
-        `ticket-${interaction.user.id}`
-    );
+  const username = interaction.user.username
+  .toLowerCase()
+  .replace(/[^a-z0-9]/g, "-");
+
+const existingTicket =
+  interaction.guild.channels.cache.find(
+    c => c.name === `ticket-${username}`
+  );
 
   if (existingTicket) {
     return interaction.reply({
@@ -373,7 +375,7 @@ if (interaction.isModalSubmit()) {
 
   const channel =
     await interaction.guild.channels.create({
-      name: `ticket-${interaction.user.id}`,
+      name: `ticket-${interaction.user.username.toLowerCase()}`,
       type: ChannelType.GuildText,
 
       parent: "1013848320478818335",
@@ -414,7 +416,7 @@ if (interaction.isModalSubmit()) {
 
     embeds: [
       new EmbedBuilder()
-        .setTitle("🎫 Ticket Mới")
+        .setTitle("# Shark Store")
         .setColor("#00ff99")
         .addFields(
           {
@@ -422,7 +424,7 @@ if (interaction.isModalSubmit()) {
             value: `${interaction.user}`,
           },
           {
-            name: "Nội dung",
+            name: "Bạn Cần Mua Gì Vui Lòng Nhắn Bên Dưới Và Đợi Admin Trả Lời",
             value: reason,
           }
         ),
