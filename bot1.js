@@ -322,11 +322,21 @@ if (interaction.isButton()) {
       .setCustomId(interaction.customId)
       .setTitle("Shark Store");
 
-    const input = new TextInputBuilder()
-      .setCustomId("reason")
-      .setLabel("Bạn cần mua/hỗ trợ gì?")
-      .setStyle(TextInputStyle.Paragraph)
-      .setRequired(true);
+    const productInput = new TextInputBuilder()
+  .setCustomId("product")
+  .setLabel("Sản phẩm")
+  .setStyle(TextInputStyle.Short)
+  .setRequired(true);
+
+const noteInput = new TextInputBuilder()
+  .setCustomId("note")
+  .setLabel("Ghi chú")
+  .setStyle(TextInputStyle.Paragraph)
+  .setRequired(false);
+
+modal.addComponents(
+  new ActionRowBuilder().addComponents(productInput),
+  new ActionRowBuilder().addComponents(noteInput));
 
     modal.addComponents(
       new ActionRowBuilder().addComponents(input)
@@ -354,8 +364,11 @@ if (interaction.isModalSubmit()) {
     interaction.customId !== "support_ticket"
   ) return;
 
-  const reason =
-    interaction.fields.getTextInputValue("reason");
+  const product =
+interaction.fields.getTextInputValue("product");
+
+const note =
+interaction.fields.getTextInputValue("note") || "Không có";
 
   const username = interaction.user.username
   .toLowerCase()
@@ -411,28 +424,44 @@ const existingTicket =
         .setStyle(ButtonStyle.Danger)
     );
 
-  await channel.send({
-    content: `<@${interaction.user.id}> <@&1206284744145375292>`,
+  const ticketEmbed = new EmbedBuilder()
+  .setColor("#00BFFF")
+  .setTitle("Shark Store")
+  .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283")
+  .addFields(
+    {
+      name: "> 📌 Người Tạo Đơn",
+      value: `${interaction.user}`,
+      inline: false
+    },
+    {
+      name: "> 🎫 Mã Ticket",
+      value: `\`${ticketCode}\``,
+      inline: false
+    },
+    {
+      name: "> 📂 Loại Ticket",
+      value: "Mua Hàng",
+      inline: false
+    },
+    {
+      name: "> 🛒 Sản Phẩm",
+      value: product,
+      inline: false
+    },
+    {
+      name: "> 📝 Ghi Chú",
+      value: note,
+      inline: false
+    }
+  )
+  .setTimestamp();
 
-    embeds: [
-      new EmbedBuilder()
-        .setTitle("# Shark Store")
-        .setColor("#00ff99")
-        .addFields(
-          {
-            name: "Người tạo",
-            value: `${interaction.user}`,
-          },
-          {
-            name: "Bạn Cần Mua Gì Vui Lòng Nhắn Bên Dưới Và Đợi Admin Trả Lời",
-            value: reason,
-          }
-        ),
-    ],
-
-    components: [closeRow],
-  });
-
+await channel.send({
+  content: `<@${interaction.user.id}> <@&1206284744145375292>`,
+  embeds: [ticketEmbed],
+  components: [closeRow]
+});
   await interaction.reply({
     content: `✅ Ticket đã được tạo: ${channel}`,
     ephemeral: true,
