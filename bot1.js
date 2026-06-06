@@ -383,9 +383,9 @@ const existingTicket =
     });
   }
 
-  const channel =
-    await interaction.guild.channels.create({
-      name: `ticket-${username}`
+const channel =
+  await interaction.guild.channels.create({
+      name: `ticket-${username}`,
       type: ChannelType.GuildText,
 
       parent: "1013848320478818335",
@@ -429,33 +429,33 @@ const ticketEmbed = new EmbedBuilder()
   .setTitle("Shark Store")
   .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283")
   .addFields(
-    {
-  name: ">📌 Người Tạo Đơn",
-  value: `${interaction.user}`,
-  inline: false
-},
-{
-  name: ">🎫 Mã Ticket",
-  value: `\`${ticketCode}\``,
-  inline: false
-},
-{
-  name: ">📂 Loại Ticket",
-  value: interaction.customId === "buy_ticket"
-    ? "Mua Hàng"
-    : "Hỗ Trợ",
-  inline: false
-},
-{
-  name: ">🛒 Sản Phẩm",
-  value: product,
-  inline: false
-},
-{
-  name: ">📝 Ghi Chú",
-  value: note,
-  inline: false
-}
+  {
+    name: "> 📌 Người Tạo Đơn",
+    value: `${interaction.user}`,
+    inline: false
+  },
+  {
+    name: "> 🎫 Mã Ticket",
+    value: `\`${ticketCode}\``,
+    inline: false
+  },
+  {
+    name: "> 📂 Loại Ticket",
+    value: interaction.customId === "buy_ticket"
+      ? "Mua Hàng"
+      : "Hỗ Trợ",
+    inline: false
+  },
+  {
+    name: "> 🛒 Sản Phẩm",
+    value: product,
+    inline: false
+  },
+  {
+    name: "> 📝 Ghi Chú",
+    value: note,
+    inline: false
+  }
   )
   .setTimestamp();
 
