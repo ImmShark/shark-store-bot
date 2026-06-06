@@ -239,7 +239,7 @@ if (commandName === "ticket") {
     .setColor("#00bfff")
     .setTitle("Shark Store")
     .setDescription(`
-      <:3629shinystar4:1512142399932076223> Tạo Ticket Khi Thật Sự Cần Thiết
+      <:6336bunnycomet:1512142819140173976> Tạo Ticket Khi Thật Sự Cần Thiết
       <:1661shinystar6:1512141829758386226> Vui Lòng Không Spam Ticket + Ping
 `)
     .setImage("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283");
@@ -428,35 +428,26 @@ const ticketEmbed = new EmbedBuilder()
   .setColor("#00BFFF")
   .setTitle("Shark Store")
   .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a2585c0&is=6a243440&hm=8077fea3bef378edd031f63176842badaabf53608b8950762a082b69c8600483&=&width=623&height=533")
-  .setDescription(
-  {
-    name: "> ```<:2113star12:1512141893352554556> **Người Tạo Đơn:**```",
-    value: `${interaction.user}`,
-    inline: false
-  },
-  {
-    name: "> ```<:3121star3:1512142160932376638> **Mã Ticket:**```",
-    value: `\`${ticketCode}\``,
-    inline: false
-  },
-  {
-    name: "> ```<:3954star13:1512142456337203463> **Loại Ticket:**```",
-    value: interaction.customId === "buy_ticket"
-      ? "Mua Hàng"
-      : "Hỗ Trợ",
-    inline: false
-  },
-  {
-    name: "> ```<:5952star7:1512142789889233016> **Sản Phẩm:**```",
-    value: product,
-    inline: false
-  },
-  {
-    name: "> ```<:4439star9:1512142545419899070> **Ghi Chú:**```",
-    value: note,
-    inline: false
-  }
-  )
+  .setDescription(`
+╭───────────────╮
+
+<:2113star12:1512141893352554556> **Người Tạo Đơn**
+${interaction.user}
+
+<:3121star3:1512142160932376638> **Mã Ticket**
+\`${ticketCode}\`
+
+<:3954star13:1512142456337203463> **Loại Ticket**
+${interaction.customId === "buy_ticket" ? "Mua Hàng" : "Hỗ Trợ"}
+
+<:5952star7:1512142789889233016> **Sản Phẩm**
+${product}
+
+<:4439star9:1512142545419899070> **Ghi Chú**
+${note}
+
+╰───────────────╯
+`)
   .setTimestamp();
 
 await channel.send({
