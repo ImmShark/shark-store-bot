@@ -430,30 +430,30 @@ const ticketEmbed = new EmbedBuilder()
   .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a2585c0&is=6a243440&hm=8077fea3bef378edd031f63176842badaabf53608b8950762a082b69c8600483&=&width=623&height=533")
   .setDescription(
   {
-    name: "> <:2113star12:1512141893352554556> **Người Tạo Đơn:**",
-    value: "```${interaction.user}```",
+    name: "> ```<:2113star12:1512141893352554556> **Người Tạo Đơn:**```",
+    value: `${interaction.user}`,
     inline: false
   },
   {
-    name: "> <:3121star3:1512142160932376638> **Mã Ticket:**",
-    value: "```\`${ticketCode}\````",
+    name: "> ```<:3121star3:1512142160932376638> **Mã Ticket:**```",
+    value: `\`${ticketCode}\``,
     inline: false
   },
   {
-    name: "> <:3954star13:1512142456337203463> **Loại Ticket:**",
+    name: "> ```<:3954star13:1512142456337203463> **Loại Ticket:**```",
     value: interaction.customId === "buy_ticket"
-      ? "```Mua Hàng```"
-      : "```Hỗ Trợ```",
+      ? "Mua Hàng"
+      : "Hỗ Trợ",
     inline: false
   },
   {
-    name: "> <:5952star7:1512142789889233016> **Sản Phẩm:**",
-    value: "```product```",
+    name: "> ```<:5952star7:1512142789889233016> **Sản Phẩm:**```",
+    value: product,
     inline: false
   },
   {
-    name: "> <:4439star9:1512142545419899070> **Ghi Chú:**",
-    value: "```note```",
+    name: "> ```<:4439star9:1512142545419899070> **Ghi Chú:**```",
+    value: note,
     inline: false
   }
   )
