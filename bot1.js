@@ -244,7 +244,8 @@ if (commandName === "ticket") {
 > <a:bongocat:1110555770346545173>Xem Giá Tại: 
 > https://discord.com/channels/1013847341649887232/1165337754952020008
 
-> <a:pin1999:1116682907675799573>Xem Điều Khoảng Mua Hàng Tại: https://discord.com/channels/1013847341649887232/1242748972460806255
+> <a:pin1999:1116682907675799573>Xem Điều Khoảng Mua Hàng Tại: 
+> https://discord.com/channels/1013847341649887232/1242748972460806255
 `)
     .setImage("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283");
 
