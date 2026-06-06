@@ -14,6 +14,11 @@ const {
   ChannelType,
   ActionRowBuilder,
   StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
 } = require("discord.js");
 const fs = require("fs");
 
@@ -113,6 +118,9 @@ client.once("ready", async () => {
       new SlashCommandBuilder()
         .setName("banggia")
         .setDescription("Hiển thị bảng giá dịch vụ của shop."),
+        new SlashCommandBuilder()
+  .setName("ticket")
+  .setDescription("Gửi bảng tạo ticket"),
       new SlashCommandBuilder()
     .setName("qr")
     .setDescription("Hiển thị thông tin chuyển khoản + QR code"),
@@ -225,7 +233,37 @@ SHARK STORE
 
   await interaction.reply({ embeds: [embed] });
 }
+if (commandName === "ticket") {
 
+  const embed = new EmbedBuilder()
+    .setColor("#00bfff")
+    .setTitle("Shark Store")
+    .setDescription(`
+✅ Tạo Ticket Khi Thật Sự Cần Thiết
+✅ Vui Lòng Không Spam Ticket + Ping
+`)
+    .setImage("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283");
+
+  const row = new ActionRowBuilder()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId("buy_ticket")
+        .setLabel("Mua Hàng")
+        .setEmoji("🛒")
+        .setStyle(ButtonStyle.Danger),
+
+      new ButtonBuilder()
+        .setCustomId("support_ticket")
+        .setLabel("Hỗ Trợ")
+        .setEmoji("🌸")
+        .setStyle(ButtonStyle.Secondary)
+    );
+
+  await interaction.reply({
+    embeds: [embed],
+    components: [row]
+  });
+}
     if (commandName === "setup-legit") {
       if (
         !interaction.member.permissions.has(PermissionFlagsBits.Administrator)
@@ -273,7 +311,131 @@ SHARK STORE
       }
     }
   }
+if (interaction.isButton()) {
 
+  if (
+    interaction.customId === "buy_ticket" ||
+    interaction.customId === "support_ticket"
+  ) {
+
+    const modal = new ModalBuilder()
+      .setCustomId(interaction.customId)
+      .setTitle("Ani Store");
+
+    const input = new TextInputBuilder()
+      .setCustomId("reason")
+      .setLabel("Bạn cần mua/hỗ trợ gì?")
+      .setStyle(TextInputStyle.Paragraph)
+      .setRequired(true);
+
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(input)
+    );
+
+    await interaction.showModal(modal);
+  }
+
+  if (interaction.customId === "close_ticket") {
+
+    await interaction.reply({
+      content: "🔒 Ticket sẽ đóng sau 5 giây",
+      ephemeral: true
+    });
+
+    setTimeout(() => {
+      interaction.channel.delete().catch(() => {});
+    }, 5000);
+  }
+}
+if (interaction.isModalSubmit()) {
+
+  if (
+    interaction.customId !== "buy_ticket" &&
+    interaction.customId !== "support_ticket"
+  ) return;
+
+  const reason =
+    interaction.fields.getTextInputValue("reason");
+
+  const existingTicket =
+    interaction.guild.channels.cache.find(
+      c =>
+        c.name ===
+        `ticket-${interaction.user.id}`
+    );
+
+  if (existingTicket) {
+    return interaction.reply({
+      content: `❌ Bạn đã có ticket: ${existingTicket}`,
+      ephemeral: true
+    });
+  }
+
+  const channel =
+    await interaction.guild.channels.create({
+      name: `ticket-${interaction.user.id}`,
+      type: ChannelType.GuildText,
+
+      parent: "1013848320478818335",
+
+      permissionOverwrites: [
+        {
+          id: interaction.guild.id,
+          deny: [PermissionFlagsBits.ViewChannel],
+        },
+        {
+          id: interaction.user.id,
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+          ],
+        },
+        {
+          id: "1206284744145375292",
+          allow: [
+            PermissionFlagsBits.ViewChannel,
+            PermissionFlagsBits.SendMessages,
+          ],
+        },
+      ],
+    });
+
+  const closeRow =
+    new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("close_ticket")
+        .setLabel("Đóng Ticket")
+        .setEmoji("🔒")
+        .setStyle(ButtonStyle.Danger)
+    );
+
+  await channel.send({
+    content: `<@${interaction.user.id}> <@&1206284744145375292>`,
+
+    embeds: [
+      new EmbedBuilder()
+        .setTitle("🎫 Ticket Mới")
+        .setColor("#00ff99")
+        .addFields(
+          {
+            name: "Người tạo",
+            value: `${interaction.user}`,
+          },
+          {
+            name: "Nội dung",
+            value: reason,
+          }
+        ),
+    ],
+
+    components: [closeRow],
+  });
+
+  await interaction.reply({
+    content: `✅ Ticket đã được tạo: ${channel}`,
+    ephemeral: true,
+  });
+}
   if (interaction.isStringSelectMenu()) {
     if (interaction.customId === "price_list_select") {
       const selectedCategoryId = interaction.values[0];
