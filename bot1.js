@@ -427,32 +427,32 @@ const ticketCode =
 const ticketEmbed = new EmbedBuilder()
   .setColor("#00BFFF")
   .setTitle("Shark Store")
-  .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283")
+  .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a2585c0&is=6a243440&hm=8077fea3bef378edd031f63176842badaabf53608b8950762a082b69c8600483&=&width=623&height=533")
   .addFields(
   {
-    name: "> 📌 Người Tạo Đơn",
+    name: ">📌 Người Tạo Đơn:",
     value: `${interaction.user}`,
     inline: false
   },
   {
-    name: "> 🎫 Mã Ticket",
+    name: ">🎫 Mã Ticket:",
     value: `\`${ticketCode}\``,
     inline: false
   },
   {
-    name: "> 📂 Loại Ticket",
+    name: ">📂 Loại Ticket:",
     value: interaction.customId === "buy_ticket"
       ? "Mua Hàng"
       : "Hỗ Trợ",
     inline: false
   },
   {
-    name: "> 🛒 Sản Phẩm",
-    value: product,
+    name: ">🛒 Sản Phẩm:",
+    value:  product ,
     inline: false
   },
   {
-    name: "> 📝 Ghi Chú",
+    name: ">📝 Ghi Chú:",
     value: note,
     inline: false
   }
@@ -465,7 +465,7 @@ await channel.send({
   components: [closeRow]
 });
   await interaction.reply({
-    content: `✅ Ticket đã được tạo: ${channel}`,
+    content: `<:6336bunnycomet:1512142819140173976> Ticket đã được tạo: ${channel}`,
     ephemeral: true,
   });
 }
