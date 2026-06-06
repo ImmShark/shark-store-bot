@@ -428,26 +428,36 @@ const ticketEmbed = new EmbedBuilder()
   .setColor("#00BFFF")
   .setTitle("Shark Store")
   .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a2585c0&is=6a243440&hm=8077fea3bef378edd031f63176842badaabf53608b8950762a082b69c8600483&=&width=623&height=533")
-  .setDescription(`
-📌 **Người Tạo Đơn:**
-${interaction.user}
-
-🎫 **Mã Ticket:**
-\`${ticketCode}\`
-
-📂 **Loại Ticket:**
-${interaction.customId === "buy_ticket" ? "Mua Hàng" : "Hỗ Trợ"}
-
-🛒 **Sản Phẩm**
-${product}
-
-📝 **Ghi Chú**
-${note}
-`)
-.setFooter({
-  text: "© Shark Store"
-})
-.setTimestamp();
+  .setDescription(
+  {
+    name: "> 📌 **Người Tạo Đơn:**",
+    value: "```${interaction.user}```",
+    inline: false
+  },
+  {
+    name: "> 🎫 **Mã Ticket:**",
+    value: "```\`${ticketCode}\````",
+    inline: false
+  },
+  {
+    name: "> 📂 **Loại Ticket:**",
+    value: interaction.customId === "buy_ticket"
+      ? "```Mua Hàng```"
+      : "```Hỗ Trợ```",
+    inline: false
+  },
+  {
+    name: "> 🛒 **Sản Phẩm:**",
+    value: "```product```",
+    inline: false
+  },
+  {
+    name: "> 📝 **Ghi Chú:**",
+    value: "```note```",
+    inline: false
+  }
+  )
+  .setTimestamp();
 
 await channel.send({
   content: `<@${interaction.user.id}> <@&1206284744145375292>`,
