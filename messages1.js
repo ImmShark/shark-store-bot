@@ -255,7 +255,7 @@ module.exports = {
       },
     },
          {
-      id: "netflox_premium",
+      id: "netflix_premium",
       label: "Nefl1t Premium",
       description: "Netfl1t Riêng Tư.",
       emoji: "<:9827netflixlogo:1512143036300132382>",
@@ -266,7 +266,7 @@ module.exports = {
           "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
         fields: [
           {
-            name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 1 Tháng (Family):",
+            name: "<:9827netflixlogo:1512143036300132382> Netflix 1 Tháng (Family):",
             value: "```PRICE : 65.000 VNĐ```",
             inline: false,
           },
@@ -319,6 +319,16 @@ module.exports = {
                     {
             name: "<:44559newchatgptlogoround:1512143360696127770> Chat GPT Plus 1 Tháng (Cấp Acc):",
             value: "```PRICE : 350.000 VNĐ (BH 1 THÁNG)```",
+            inline: false,
+          },
+          {
+            name: "<:44559newchatgptlogoround:1512143360696127770> Chat Add Team 1 Tháng (Chính Chủ):",
+            value: "```PRICE : 150.000 VNĐ (BH 1 THÁNG)```",
+            inline: false,
+          },
+          {
+            name: "<:44559newchatgptlogoround:1512143360696127770> Chat Add Team (Share) 1 Tháng (Cấp Acc):",
+            value: "```PRICE : 60.000 VNĐ (BH 1 THÁNG)```",
             inline: false,
           },
                     {
@@ -383,6 +393,11 @@ module.exports = {
             value: "```PRICE : 600.000 VNĐ```",
             inline: false,
           },
+          {
+            name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 1 Tháng (Cấp Acc):",
+            value: "```PRICE : 100.000 VNĐ```",
+            inline: false,
+          },
                     {
             name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 80Gb 1 Năm (2 Máy):",
             value: "```PRICE : 1.050.000 VNĐ```",
@@ -410,8 +425,8 @@ module.exports = {
           "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
         fields: [
           {
-            name: "<:69836capcut:1407393955762667733> Capcut Pro 1 Tháng (Cá Nhân):",
-            value: "```PRICE : 100.000 VNĐ```",
+            name: "<:69836capcut:1407393955762667733> Capcut Pro 6 Tháng (Cá Nhân):",
+            value: "```PRICE : 150.000 VNĐ```",
             inline: false,
           },
                     {
