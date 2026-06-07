@@ -192,6 +192,17 @@ async function sendPriceList(interactionOrMessage) {
 client.on("interactionCreate", async (interaction) => {
   if (interaction.isChatInputCommand()) {
     const { commandName } = interaction;
+    const OWNER_ID = "1013433356832219157";
+
+if (
+  ["banggia", "ticket", "qr", "setup-letgit"].includes(commandName) &&
+  interaction.user.id !== OWNER_ID
+) {
+  return interaction.reply({
+    content: "❌ Bạn không có quyền sử dụng lệnh này.",
+    ephemeral: true,
+  });
+}
 
     if (commandName === "banggia") {
       await sendPriceList(interaction);
