@@ -442,7 +442,7 @@ const ticketCode =
 
 const ticketEmbed = new EmbedBuilder()
   .setColor("#00BFFF")
-  .setTitle("<a:1294791959336194068:1371119477709738106>SHARK STORE<a:1294792168824635427:1371119479081402491>")
+  .setTitle("<a:39411brownbow:1515288160727339028> SHARK STORE <a:294064purplepaw:1515288184223825942>")
   .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a2585c0&is=6a243440&hm=8077fea3bef378edd031f63176842badaabf53608b8950762a082b69c8600483&=&width=623&height=533")
   .setDescription(`
 ╭───────────────╮
