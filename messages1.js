@@ -266,27 +266,27 @@ module.exports = {
           "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
         fields: [
           {
-            name: "<a:Netflix:1395766615055794376> Netflix Riêng Tư 1 Tháng:",
+            name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 1 Tháng:",
             value: "```PRICE : 75.000 VNĐ```",
             inline: false,
           },
                     {
-            name: "<a:Netflix:1395766615055794376> Netflix Riêng Tư 3 Tháng:",
+            name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 3 Tháng:",
             value: "```PRICE : 200.000 VNĐ```",
             inline: false,
           },
                     {
-            name: "<a:Netflix:1395766615055794376> Netflix Riêng Tư 6 Tháng:",
+            name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 6 Tháng:",
             value: "```PRICE : 360.000 VNĐ```",
             inline: false,
           },
                     {
-            name: "<a:Netflix:1395766615055794376> Netflix Riêng Tư 1 Năm:",
+            name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 1 Năm:",
             value: "```PRICE : 680.000 VNĐ```",
             inline: false,
           },
           {
-            name: "<a:Netflix:1395766615055794376> Netflix Extra Riêng Tư 1 Tháng:",
+            name: "<:9827netflixlogo:1512143036300132382> Netflix Extra Riêng Tư 1 Tháng:",
             value: "```PRICE : 90.000 VNĐ```",
             inline: false,
           },
