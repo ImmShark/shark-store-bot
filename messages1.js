@@ -503,7 +503,7 @@ module.exports = {
       return `🤔 Sai cú pháp rồi bạn ơi! Vui lòng gõ theo mẫu sau:\n\`\`\`+1 legit <Tên Sản Phẩm Ở Đây>\`\`\``;
     },
 
-    reactions: ["<a:ahentick:1116681945947058237>"],
+    reactions: ["<a:ahentick:1116681945947058237> <a:806802450589679626:1370805888285282375> <a:1245987073203245108:1380556872209268747>"],
 
     embed: {
       title: "𝙻𝚎𝚐𝚒𝚝 𝙲𝚑𝚞𝚊̂̉𝚗 𝙽𝚑𝚊̂́𝚝",
