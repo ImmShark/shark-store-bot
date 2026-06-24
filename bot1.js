@@ -215,7 +215,7 @@ if (commandName === "qr") {
         "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a238b80&is=6a223a00&hm=71cf0d3bb9c37b681ecba2fe634b865789bcef8195cd6206bc7568d934fcd0cd&=&width=623&height=533"
       ) // logo nhỏ
 .setFooter({
-  text: "<:8819shinystar3:1512142936287088791> VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
+  text: " VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
 })
       .setDescription(`
 <a:39411brownbow:1515288160727339028> **Ngân Hàng**
