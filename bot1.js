@@ -209,31 +209,31 @@ if (
     }
 if (commandName === "qr") {
   const embed = new EmbedBuilder()
-    .setTitle("📌 THÔNG TIN CHUYỂN KHOẢN")
+    .setTitle("<a:294064purplepaw:1515288184223825942> THÔNG TIN CHUYỂN KHOẢN")
     .setColor("#00ff99")
     .setThumbnail(
         "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a238b80&is=6a223a00&hm=71cf0d3bb9c37b681ecba2fe634b865789bcef8195cd6206bc7568d934fcd0cd&=&width=623&height=533"
       ) // logo nhỏ
 .setFooter({
-  text: "VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
+  text: "<:8819shinystar3:1512142936287088791> VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
 })
       .setDescription(`
-🏦 **Ngân Hàng**
+<a:39411brownbow:1515288160727339028> **Ngân Hàng**
 \`\`\`
 MB BANK
 \`\`\`
 
-💳 **Số Tài Khoản**
+<:3339shinystar2:1512142205094068367> **Số Tài Khoản**
 \`\`\`
 0328206839
 \`\`\`
 
-👤 **Chủ Tài Khoản**
+<:1661shinystar6:1512141829758386226> **Chủ Tài Khoản**
 \`\`\`
 LE HOANG VU
 \`\`\`
 
-📝 **Nội Dung**
+<:3629shinystar4:1512142399932076223> **Nội Dung**
 \`\`\`
 SHARK STORE
 \`\`\`
