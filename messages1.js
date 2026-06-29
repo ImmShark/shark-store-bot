@@ -395,17 +395,17 @@ module.exports = {
         fields: [
           {
             name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 80Gb 1 Năm (1 Máy):",
-            value: "```PRICE : 600.000 VNĐ```",
+            value: "```PRICE : 700.000 VNĐ```",
             inline: false,
           },
           {
             name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 1 Tháng (Cấp Acc):",
-            value: "```PRICE : 100.000 VNĐ```",
+            value: "```PRICE : 150.000 VNĐ```",
             inline: false,
           },
                     {
             name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 80Gb 1 Năm (2 Máy):",
-            value: "```PRICE : 1.050.000 VNĐ```",
+            value: "```PRICE : 1.250.000 VNĐ```",
             inline: false,
           },
           
