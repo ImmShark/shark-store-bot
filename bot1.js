@@ -73,16 +73,16 @@ async function checkAndRestoreLegitState() {
           continue;
         }
 
-        const matchedPrefix = messages.legitCheck.triggerPrefix.find(prefix =>
-    lastMessage.content.startsWith(prefix)
-);
+        const matchedPrefix = messages.legitCheck.triggerPrefix.find((prefix) =>
+          lastMessage.content.startsWith(prefix),
+        );
 
-if (matchedPrefix) {
-    const productName = lastMessage.content
-        .substring(matchedPrefix.length)
-        .trim();
+        if (matchedPrefix) {
+          const productName = lastMessage.content
+            .substring(matchedPrefix.length)
+            .trim();
 
-    if (!productName) continue;
+          if (!productName) continue;
 
           const secondLastMessage = messagesInChannel.last();
 
@@ -91,7 +91,7 @@ if (matchedPrefix) {
             secondLastMessage.id !== settings.lastLegitEmbedId
           ) {
             console.log(
-              `[PHỤC HỒI] Phát hiện tin nhắn legit chưa được xử lý trong kênh ${channel.name}. Đang xử lý lại...`
+              `[PHỤC HỒI] Phát hiện tin nhắn legit chưa được xử lý trong kênh ${channel.name}. Đang xử lý lại...`,
             );
             await handleLegitMessage(lastMessage);
           }
@@ -99,7 +99,7 @@ if (matchedPrefix) {
       } catch (error) {
         console.error(
           `❌ Lỗi khi phục hồi trạng thái cho server ID ${guildId}:`,
-          error
+          error,
         );
       }
     }
@@ -118,12 +118,12 @@ client.once("ready", async () => {
       new SlashCommandBuilder()
         .setName("banggia")
         .setDescription("Hiển thị bảng giá dịch vụ của shop."),
-        new SlashCommandBuilder()
-  .setName("ticket")
-  .setDescription("Gửi bảng tạo ticket"),
       new SlashCommandBuilder()
-    .setName("qr")
-    .setDescription("Hiển thị thông tin chuyển khoản + QR code"),
+        .setName("ticket")
+        .setDescription("Gửi bảng tạo ticket"),
+      new SlashCommandBuilder()
+        .setName("qr")
+        .setDescription("Hiển thị thông tin chuyển khoản + QR code"),
       new SlashCommandBuilder()
         .setName("setup-legit")
         .setDescription("[Admin] Thiết lập kênh để gửi tin nhắn legit.")
@@ -132,14 +132,14 @@ client.once("ready", async () => {
             .setName("channel")
             .setDescription("Chọn kênh bạn muốn dùng để check legit.")
             .setRequired(true)
-            .addChannelTypes(ChannelType.GuildText)
+            .addChannelTypes(ChannelType.GuildText),
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     ];
 
     await rest.put(
       Routes.applicationGuildCommands(config.CLIENT_ID, config.GUILD_ID),
-      { body: commands }
+      { body: commands },
     );
 
     console.log("✅ Đã đăng ký thành công các lệnh slash.");
@@ -176,7 +176,7 @@ async function sendPriceList(interactionOrMessage) {
 
   const row = new ActionRowBuilder().addComponents(selectMenu);
 
- if (interactionOrMessage.isChatInputCommand?.()) {
+  if (interactionOrMessage.isChatInputCommand?.()) {
     await interactionOrMessage.reply({
       embeds: [mainEmbed],
       components: [row],
@@ -194,30 +194,33 @@ client.on("interactionCreate", async (interaction) => {
     const { commandName } = interaction;
     const OWNER_ID = "1013433356832219157";
 
-if (
-  ["banggia", "ticket", "qr", "setup-letgit"].includes(commandName) &&
-  interaction.user.id !== OWNER_ID
-) {
-  return interaction.reply({
-    content: "❌ Bạn không có quyền sử dụng lệnh này.",
-    ephemeral: true,
-  });
-}
+    if (
+      ["banggia", "ticket", "qr", "setup-letgit"].includes(commandName) &&
+      interaction.user.id !== OWNER_ID
+    ) {
+      return interaction.reply({
+        content: "❌ Bạn không có quyền sử dụng lệnh này.",
+        ephemeral: true,
+      });
+    }
 
     if (commandName === "banggia") {
       await sendPriceList(interaction);
     }
-if (commandName === "qr") {
-  const embed = new EmbedBuilder()
-    .setTitle("<a:294064purplepaw:1515288184223825942> THÔNG TIN CHUYỂN KHOẢN")
-    .setColor("#008cff")
-    .setThumbnail(
-        "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a238b80&is=6a223a00&hm=71cf0d3bb9c37b681ecba2fe634b865789bcef8195cd6206bc7568d934fcd0cd&=&width=623&height=533"
-      ) 
-.setFooter({
-  text: " VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN"
-})
-      .setDescription(`
+    if (commandName === "qr") {
+      const embed = new EmbedBuilder()
+        .setTitle(
+          "<a:294064purplepaw:1515288184223825942> THÔNG TIN CHUYỂN KHOẢN",
+        )
+        .setColor("#008cff")
+        .setThumbnail(
+          "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a238b80&is=6a223a00&hm=71cf0d3bb9c37b681ecba2fe634b865789bcef8195cd6206bc7568d934fcd0cd&=&width=623&height=533",
+        )
+        .setFooter({
+          text: " VUI LÒNG GỬI BILL VÀO TICKET KHI ĐÃ CHUYỂN KHOẢN",
+        })
+        .setDescription(
+          `
 <a:39411brownbow:1515288160727339028> **Ngân Hàng**
 \`\`\`
 MB BANK
@@ -237,19 +240,20 @@ LE HOANG VU
 \`\`\`
 SHARK STORE
 \`\`\`
-`)
-.setImage(
-        "https://media.discordapp.net/attachments/1161326028682170489/1512350783511855144/635002420_2099748023930273_8969084125919827184_n.jpg?ex=6a23c5ec&is=6a22746c&hm=53d4547240c6cbff44df18fdca6fb5c5dafd24a2de80745169a068166c05c768&=&format=webp&width=930&height=930"
-);
+`,
+        )
+        .setImage(
+          "https://media.discordapp.net/attachments/1161326028682170489/1512350783511855144/635002420_2099748023930273_8969084125919827184_n.jpg?ex=6a23c5ec&is=6a22746c&hm=53d4547240c6cbff44df18fdca6fb5c5dafd24a2de80745169a068166c05c768&=&format=webp&width=930&height=930",
+        );
 
-  await interaction.reply({ embeds: [embed] });
-}
-if (commandName === "ticket") {
-
-  const embed = new EmbedBuilder()
-    .setColor("#00bfff")
-    .setTitle("Shark Store")
-    .setDescription(`
+      await interaction.reply({ embeds: [embed] });
+    }
+    if (commandName === "ticket") {
+      const embed = new EmbedBuilder()
+        .setColor("#00bfff")
+        .setTitle("Shark Store")
+        .setDescription(
+          `
   <a:kingscrown:1116681967505784862> **Nhấn Vào Nút Bên Dưới Để Tạo Ticket** <a:kingscrown:1116681967505784862>
 <a:heartCopy:1110555799777972226> **Vui Lòng Không Spam Ticket** <a:heartCopy:1110555799777972226>
 > <a:bongocat:1110555770346545173>Xem Giá Tại: 
@@ -257,29 +261,31 @@ if (commandName === "ticket") {
 
 > <a:pin1999:1116682907675799573>Xem Điều Khoảng Mua Hàng Tại: 
 > https://discord.com/channels/1013847341649887232/1242748972460806255
-`)
-    .setImage("https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283");
+`,
+        )
+        .setImage(
+          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a2589c7&is=6a243847&hm=8fd67fd99057cedc12ecf1c9b14527a40955f1b10a5e042b2558b11a472606aa&=&format=webp&quality=lossless&width=1860&height=283",
+        );
 
-  const row = new ActionRowBuilder()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId("buy_ticket")
-        .setLabel("Mua Hàng")
-        .setEmoji("<:4439star9:1512142545419899070>")
-        .setStyle(ButtonStyle.Danger),
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("buy_ticket")
+          .setLabel("Mua Hàng")
+          .setEmoji("<:4439star9:1512142545419899070>")
+          .setStyle(ButtonStyle.Danger),
 
-      new ButtonBuilder()
-        .setCustomId("support_ticket")
-        .setLabel("Hỗ Trợ")
-        .setEmoji("<:7899shinystar1:1512142913428258867>")
-        .setStyle(ButtonStyle.Secondary)
-    );
+        new ButtonBuilder()
+          .setCustomId("support_ticket")
+          .setLabel("Hỗ Trợ")
+          .setEmoji("<:7899shinystar1:1512142913428258867>")
+          .setStyle(ButtonStyle.Secondary),
+      );
 
-  await interaction.reply({
-    embeds: [embed],
-    components: [row]
-  });
-}
+      await interaction.reply({
+        embeds: [embed],
+        components: [row],
+      });
+    }
     if (commandName === "setup-legit") {
       if (
         !interaction.member.permissions.has(PermissionFlagsBits.Administrator)
@@ -308,7 +314,8 @@ if (commandName === "ticket") {
           .setTitle(embedData.title)
           .setDescription(
             embedData.description(
-    messages.legitCheck.triggerPrefix[0] + " <Sản Phẩm Mẫu>")
+              messages.legitCheck.triggerPrefix[0] + " <Sản Phẩm Mẫu>",
+            ),
           )
           .setColor(embedData.color)
           .setImage(embedData.gifUrl);
@@ -318,7 +325,7 @@ if (commandName === "ticket") {
         saveSettings();
       } catch (error) {
         console.error(
-          `Không thể gửi embed mẫu vào kênh ${channel.name}: ${error}`
+          `Không thể gửi embed mẫu vào kênh ${channel.name}: ${error}`,
         );
         await interaction.followUp({
           content: `⚠️ Đã setup kênh thành công nhưng tôi không có quyền gửi tin nhắn trong đó. Vui lòng kiểm tra lại quyền của Bot.`,
@@ -327,80 +334,73 @@ if (commandName === "ticket") {
       }
     }
   }
-if (interaction.isButton()) {
+  if (interaction.isButton()) {
+    if (
+      interaction.customId === "buy_ticket" ||
+      interaction.customId === "support_ticket"
+    ) {
+      const modal = new ModalBuilder()
+        .setCustomId(interaction.customId)
+        .setTitle("Shark Store");
 
-  if (
-    interaction.customId === "buy_ticket" ||
-    interaction.customId === "support_ticket"
-  ) {
+      const productInput = new TextInputBuilder()
+        .setCustomId("product")
+        .setLabel("Sản phẩm")
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
 
-    const modal = new ModalBuilder()
-      .setCustomId(interaction.customId)
-      .setTitle("Shark Store");
+      const noteInput = new TextInputBuilder()
+        .setCustomId("note")
+        .setLabel("Ghi chú")
+        .setStyle(TextInputStyle.Paragraph)
+        .setRequired(false);
 
-    const productInput = new TextInputBuilder()
-  .setCustomId("product")
-  .setLabel("Sản phẩm")
-  .setStyle(TextInputStyle.Short)
-  .setRequired(true);
+      modal.addComponents(
+        new ActionRowBuilder().addComponents(productInput),
+        new ActionRowBuilder().addComponents(noteInput),
+      );
 
-const noteInput = new TextInputBuilder()
-  .setCustomId("note")
-  .setLabel("Ghi chú")
-  .setStyle(TextInputStyle.Paragraph)
-  .setRequired(false);
+      await interaction.showModal(modal);
+    }
 
-modal.addComponents(
-  new ActionRowBuilder().addComponents(productInput),
-  new ActionRowBuilder().addComponents(noteInput)
-);
+    if (interaction.customId === "close_ticket") {
+      await interaction.reply({
+        content: "🔒 Ticket sẽ đóng sau 5 giây",
+        ephemeral: true,
+      });
 
-await interaction.showModal(modal);
+      setTimeout(() => {
+        interaction.channel.delete().catch(() => {});
+      }, 5000);
+    }
   }
+  if (interaction.isModalSubmit()) {
+    if (
+      interaction.customId !== "buy_ticket" &&
+      interaction.customId !== "support_ticket"
+    )
+      return;
 
-  if (interaction.customId === "close_ticket") {
+    const product = interaction.fields.getTextInputValue("product");
 
-    await interaction.reply({
-      content: "🔒 Ticket sẽ đóng sau 5 giây",
-      ephemeral: true
-    });
+    const note = interaction.fields.getTextInputValue("note") || "Không có";
 
-    setTimeout(() => {
-      interaction.channel.delete().catch(() => {});
-    }, 5000);
-  }
-}
-if (interaction.isModalSubmit()) {
+    const username = interaction.user.username
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "-");
 
-  if (
-    interaction.customId !== "buy_ticket" &&
-    interaction.customId !== "support_ticket"
-  ) return;
+    const existingTicket = interaction.guild.channels.cache.find(
+      (c) => c.name === `ticket-${username}`,
+    );
 
-  const product =
-interaction.fields.getTextInputValue("product");
+    if (existingTicket) {
+      return interaction.reply({
+        content: `❌ Bạn đã có ticket: ${existingTicket}`,
+        ephemeral: true,
+      });
+    }
 
-const note =
-interaction.fields.getTextInputValue("note") || "Không có";
-
-  const username = interaction.user.username
-  .toLowerCase()
-  .replace(/[^a-z0-9]/g, "-");
-
-const existingTicket =
-  interaction.guild.channels.cache.find(
-    c => c.name === `ticket-${username}`
-  );
-
-  if (existingTicket) {
-    return interaction.reply({
-      content: `❌ Bạn đã có ticket: ${existingTicket}`,
-      ephemeral: true
-    });
-  }
-
-const channel =
-  await interaction.guild.channels.create({
+    const channel = await interaction.guild.channels.create({
       name: `ticket-${username}`,
       type: ChannelType.GuildText,
 
@@ -428,23 +428,26 @@ const channel =
       ],
     });
 
-const closeRow =
-  new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId("close_ticket")
-      .setLabel("Đóng Ticket")
-      .setEmoji("🔒")
-      .setStyle(ButtonStyle.Danger)
-  );
+    const closeRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("close_ticket")
+        .setLabel("Đóng Ticket")
+        .setEmoji("🔒")
+        .setStyle(ButtonStyle.Danger),
+    );
 
-const ticketCode =
-  Math.floor(100000 + Math.random() * 900000);
+    const ticketCode = Math.floor(100000 + Math.random() * 900000);
 
-const ticketEmbed = new EmbedBuilder()
-  .setColor("#00BFFF")
-  .setTitle("<a:39411brownbow:1515288160727339028> SHARK STORE <a:294064purplepaw:1515288184223825942>")
-  .setThumbnail("https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a2585c0&is=6a243440&hm=8077fea3bef378edd031f63176842badaabf53608b8950762a082b69c8600483&=&width=623&height=533")
-  .setDescription(`
+    const ticketEmbed = new EmbedBuilder()
+      .setColor("#00BFFF")
+      .setTitle(
+        "<a:39411brownbow:1515288160727339028> SHARK STORE <a:294064purplepaw:1515288184223825942>",
+      )
+      .setThumbnail(
+        "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a2585c0&is=6a243440&hm=8077fea3bef378edd031f63176842badaabf53608b8950762a082b69c8600483&=&width=623&height=533",
+      )
+      .setDescription(
+        `
 ╭───────────────╮
 
 <a:7922_Letter_S:1515219656627982346> **Người Tạo Đơn** <a:7922_Letter_S:1515219656627982346>
@@ -463,24 +466,25 @@ ${product}
 ${note}
 
 ╰───────────────╯
-`)
-  .setTimestamp();
+`,
+      )
+      .setTimestamp();
 
-await channel.send({
-  content: `<@${interaction.user.id}> <@&1206284744145375292>`,
-  embeds: [ticketEmbed],
-  components: [closeRow]
-});
-  await interaction.reply({
-    content: `<:6336bunnycomet:1512142819140173976> Ticket đã được tạo: ${channel}`,
-    ephemeral: true,
-  });
-}
+    await channel.send({
+      content: `<@${interaction.user.id}> <@&1206284744145375292>`,
+      embeds: [ticketEmbed],
+      components: [closeRow],
+    });
+    await interaction.reply({
+      content: `<:6336bunnycomet:1512142819140173976> Ticket đã được tạo: ${channel}`,
+      ephemeral: true,
+    });
+  }
   if (interaction.isStringSelectMenu()) {
     if (interaction.customId === "price_list_select") {
       const selectedCategoryId = interaction.values[0];
       const category = messages.priceCategories.find(
-        (cat) => cat.id === selectedCategoryId
+        (cat) => cat.id === selectedCategoryId,
       );
 
       if (category) {
@@ -542,13 +546,14 @@ client.on("messageCreate", async (message) => {
   if (settings && message.channel.id === settings.legitChannelId) {
     const triggerPrefixes = messages.legitCheck.triggerPrefix;
 
-const matchedPrefix = triggerPrefixes.find(prefix =>
-    message.content.startsWith(prefix));
+    const matchedPrefix = triggerPrefixes.find((prefix) =>
+      message.content.startsWith(prefix),
+    );
     const lowerCaseContent = message.content.toLowerCase();
 
     const isCorrectFormat =
-    matchedPrefix &&
-    message.content.substring(matchedPrefix.length).trim().length > 0;
+      matchedPrefix &&
+      message.content.substring(matchedPrefix.length).trim().length > 0;
     const isAttempt =
       lowerCaseContent.includes("legit") || lowerCaseContent.includes("legi");
 
@@ -557,7 +562,7 @@ const matchedPrefix = triggerPrefixes.find(prefix =>
     } else if (isAttempt) {
       try {
         const reply = await message.reply(
-          messages.legitCheck.wrongFormatReminder()
+          messages.legitCheck.wrongFormatReminder(),
         );
         setTimeout(() => {
           reply.delete().catch(console.error);
