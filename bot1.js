@@ -365,13 +365,13 @@ SHARK STORE
 
     if (interaction.customId === "close_ticket") {
       await interaction.reply({
-        content: "🔒 Ticket sẽ đóng sau 5 giây",
+        content: "🔒 Ticket sẽ đóng sau 3 giây",
         ephemeral: true,
       });
 
       setTimeout(() => {
         interaction.channel.delete().catch(() => {});
-      }, 5000);
+      }, 3000);
     }
   }
   if (interaction.isModalSubmit()) {
@@ -476,7 +476,7 @@ ${note}
       components: [closeRow],
     });
     await interaction.reply({
-      content: `<:6336bunnycomet:1512142819140173976> Ticket đã được tạo: ${channel}`,
+      content: `<:6336bunnycomet:1512142819140173976> Ticket của bạn đã được tạo tại: ${channel}`,
       ephemeral: true,
     });
   }
