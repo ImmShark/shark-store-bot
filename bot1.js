@@ -672,18 +672,22 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// Khởi chạy bot
+// Web server mini để Render nhận diện port và kiểm tra sức khỏe (Health check)
+const http = require("http");
+const PORT = process.env.PORT || 10000;
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+  res.end("🦈 Shark Store Discord Bot is Running 24/7!");
+});
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`🌐 Web server giữ kết nối đang chạy tại 0.0.0.0:${PORT}`);
+});
+
+// Khởi chạy bot Discord
 client.login(config.DISCORD_TOKEN).catch((err) => {
   console.error("❌ Không thể đăng nhập bot. Vui lòng kiểm tra lại DISCORD_TOKEN:", err);
 });
 
-// Web server mini để Render nhận diện port và giữ bot sống 24/24
-const http = require("http");
-const PORT = process.env.PORT || 3000;
-http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
-  res.end("🦈 Shark Store Discord Bot is Running 24/7!");
-}).listen(PORT, () => {
-  console.log(`🌐 Web server giữ kết nối đang chạy trên port ${PORT}`);
-});
 
