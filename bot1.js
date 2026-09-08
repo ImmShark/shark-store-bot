@@ -239,6 +239,135 @@ client.on("interactionCreate", async (interaction) => {
         });
       }
 
+      // Lệnh thiết lập Cổng Xác Minh (Admin / Owner)
+      if (commandName === "setup-verify") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({
+            content: "❌ Bạn không có quyền sử dụng lệnh này.",
+            ephemeral: true,
+          });
+        }
+
+        await interaction.deferReply({ ephemeral: true });
+
+        // 1. Tìm hoặc tạo role "Khách Hàng"
+        let role = interaction.options.getRole("role");
+        if (!role) {
+          role = interaction.guild.roles.cache.find(
+            (r) =>
+              r.name.toLowerCase() === "khách hàng" ||
+              r.name.toLowerCase() === "khach hang"
+          );
+        }
+
+        if (!role) {
+          try {
+            role = await interaction.guild.roles.create({
+              name: "Khách Hàng",
+              color: "#00BFFF",
+              reason: "Role tự động tạo bởi Shark Store Bot cho Cổng Xác Minh",
+            });
+          } catch (err) {
+            console.error("Lỗi khi tạo role:", err);
+            return await interaction.editReply({
+              content: "❌ Không thể tạo role Khách Hàng. Vui lòng kiểm tra quyền của Bot.",
+            });
+          }
+        }
+
+        // Lưu role verify vào guild settings
+        const guildId = interaction.guild.id;
+        if (!guildSettings[guildId]) guildSettings[guildId] = {};
+        guildSettings[guildId].verifyRoleId = role.id;
+        saveSettings();
+
+        // 2. Tìm hoặc tạo kênh text xác minh
+        let verifyChannel = interaction.guild.channels.cache.find(
+          (c) =>
+            c.name.includes("xác-minh") ||
+            c.name.includes("xac-minh") ||
+            c.name.includes("verify")
+        );
+
+        if (!verifyChannel) {
+          try {
+            verifyChannel = await interaction.guild.channels.create({
+              name: "🔒・xác-minh",
+              type: ChannelType.GuildText,
+              permissionOverwrites: [
+                {
+                  id: interaction.guild.id, // @everyone
+                  allow: [
+                    PermissionFlagsBits.ViewChannel,
+                    PermissionFlagsBits.ReadMessageHistory,
+                  ],
+                  deny: [
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.AddReactions,
+                  ],
+                },
+                {
+                  id: role.id, // Đã có role Khách Hàng -> Ẩn kênh xác minh
+                  deny: [PermissionFlagsBits.ViewChannel],
+                },
+                {
+                  id: client.user.id, // Bot
+                  allow: [
+                    PermissionFlagsBits.ViewChannel,
+                    PermissionFlagsBits.SendMessages,
+                    PermissionFlagsBits.EmbedLinks,
+                    PermissionFlagsBits.ManageChannels,
+                  ],
+                },
+              ],
+            });
+          } catch (err) {
+            console.error("Lỗi khi tạo kênh xác minh:", err);
+            return await interaction.editReply({
+              content: "❌ Không thể tạo kênh xác minh. Vui lòng kiểm tra quyền của Bot.",
+            });
+          }
+        }
+
+        // 3. Gửi Embed và Nút Bấm Verify vào kênh
+        const verifyEmbed = new EmbedBuilder()
+          .setColor("#00FF99")
+          .setTitle("🛡️ CỔNG XÁC MINH THÀNH VIÊN • SHARK STORE")
+          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setDescription(
+            `
+<a:kingscrown:1116681967505784862> Chào mừng bạn đã đến với **Shark Store**! 🦈
+
+Để mở khóa các kênh **Bảng Giá**, **Mua Hàng / Ticket** và **Giao Lưu**, vui lòng nhấn vào nút bên dưới để xác minh tài khoản của bạn.
+
+> ⚠️ *Việc xác minh giúp bảo vệ cộng đồng và ngăn chặn tài khoản spam/clone.*
+`
+          )
+          .setImage(
+            "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283"
+          )
+          .setFooter({
+            text: "Shark Store • Nhấn nút bên dưới để hoàn tất xác minh",
+          });
+
+        const verifyRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("verify_member_btn")
+            .setLabel("Xác Minh Ngay")
+            .setEmoji("✅")
+            .setStyle(ButtonStyle.Success)
+        );
+
+        await verifyChannel.send({
+          embeds: [verifyEmbed],
+          components: [verifyRow],
+        });
+
+        return await interaction.editReply({
+          content: `✅ Đã thiết lập Cổng Xác Minh thành công!\n• Kênh xác minh: ${verifyChannel}\n• Role cấp sau khi xác minh: ${role}\n\n⚠️ **Lưu ý:** Bạn hãy vào **Cài đặt máy chủ > Vai trò** và kéo Role của Bot (Shark Store) lên **cao hơn** Role **${role.name}** để bot có quyền phát role nhé!`,
+        });
+      }
+
       // Lệnh tạo bảng Ticket (Admin / Owner)
       if (commandName === "ticket") {
         if (!isOwner && !isAdmin) {
@@ -434,6 +563,51 @@ client.on("interactionCreate", async (interaction) => {
         return await interaction.followUp({
           content: `🎯 **${interaction.user}** đã nhận phụ trách xử lý ticket này!`,
         });
+      }
+
+      // Nút Xác Minh Thành Viên (Verify Member)
+      if (customId === "verify_member_btn") {
+        const guildId = interaction.guild.id;
+        let roleId = guildSettings[guildId]?.verifyRoleId;
+        let role = roleId ? interaction.guild.roles.cache.get(roleId) : null;
+
+        if (!role) {
+          role = interaction.guild.roles.cache.find(
+            (r) =>
+              r.name.toLowerCase() === "khách hàng" ||
+              r.name.toLowerCase() === "khach hang"
+          );
+        }
+
+        if (!role) {
+          return await interaction.reply({
+            content: "⚠️ Không tìm thấy Role Khách Hàng. Vui lòng liên hệ Admin!",
+            ephemeral: true,
+          });
+        }
+
+        // Kiểm tra xem thành viên đã có role chưa
+        if (interaction.member.roles.cache.has(role.id)) {
+          return await interaction.reply({
+            content: "ℹ️ Bạn đã xác minh tài khoản rồi! Không cần bấm lại nữa nhé.",
+            ephemeral: true,
+          });
+        }
+
+        try {
+          await interaction.member.roles.add(role);
+          return await interaction.reply({
+            content: `🎉 **Xác minh thành công!**\nBạn đã nhận được role **${role.name}** và toàn bộ kênh của **Shark Store** đã được mở ra.\nChúc bạn có trải nghiệm mua sắm tuyệt vời! 🦈`,
+            ephemeral: true,
+          });
+        } catch (err) {
+          console.error("Lỗi khi cấp role xác minh:", err);
+          return await interaction.reply({
+            content:
+              "❌ Bot không đủ quyền cấp role. Vui lòng báo Admin kiểm tra quyền phân cấp của Bot!",
+            ephemeral: true,
+          });
+        }
       }
     }
 

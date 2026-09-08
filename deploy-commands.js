@@ -47,6 +47,17 @@ const commands = [
         .setMinValue(0),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("setup-verify")
+    .setDescription("[Admin] Tự động tạo kênh xác minh và gửi bảng nút bấm Verify.")
+    .addRoleOption((option) =>
+      option
+        .setName("role")
+        .setDescription("Chọn role Khách Hàng (để trống bot sẽ tự tìm)")
+        .setRequired(false),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);
