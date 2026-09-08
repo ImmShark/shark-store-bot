@@ -567,27 +567,46 @@ client.on("interactionCreate", async (interaction) => {
 
       // Nút Xác Minh Thành Viên (Verify Member)
       if (customId === "verify_member_btn") {
-        const guildId = interaction.guild.id;
-        let roleId = guildSettings[guildId]?.verifyRoleId;
-        let role = roleId ? interaction.guild.roles.cache.get(roleId) : null;
+        const guild = interaction.guild;
+        const guildId = guild.id;
+        const rolesToGive = [];
 
-        if (!role) {
-          role = interaction.guild.roles.cache.find(
+        // 1. Tìm Role Khách Hàng
+        let role1 = guildSettings[guildId]?.verifyRoleId
+          ? guild.roles.cache.get(guildSettings[guildId].verifyRoleId)
+          : null;
+
+        if (!role1) {
+          role1 = guild.roles.cache.find(
             (r) =>
               r.name.toLowerCase() === "khách hàng" ||
               r.name.toLowerCase() === "khach hang"
           );
         }
+        if (role1) rolesToGive.push(role1);
 
-        if (!role) {
+        // 2. Tìm Role IN4 (══✿══╡°˖✧ 𝐈𝐍𝟒 ✧˖°╞══✿══)
+        const role2 = guild.roles.cache.find(
+          (r) =>
+            r.name === "══✿══╡°˖✧ 𝐈𝐍𝟒 ✧˖°╞══✿══" ||
+            r.name.includes("𝐈𝐍𝟒") ||
+            r.name.includes("IN4")
+        );
+        if (role2) rolesToGive.push(role2);
+
+        if (rolesToGive.length === 0) {
           return await interaction.reply({
-            content: "⚠️ Không tìm thấy Role Khách Hàng. Vui lòng liên hệ Admin!",
+            content: "⚠️ Không tìm thấy Role cần cấp. Vui lòng liên hệ Admin!",
             ephemeral: true,
           });
         }
 
-        // Kiểm tra xem thành viên đã có role chưa
-        if (interaction.member.roles.cache.has(role.id)) {
+        // Kiểm tra xem thành viên đã có đủ các role chưa
+        const hasAllRoles = rolesToGive.every((r) =>
+          interaction.member.roles.cache.has(r.id)
+        );
+
+        if (hasAllRoles) {
           return await interaction.reply({
             content: "ℹ️ Bạn đã xác minh tài khoản rồi! Không cần bấm lại nữa nhé.",
             ephemeral: true,
@@ -595,16 +614,17 @@ client.on("interactionCreate", async (interaction) => {
         }
 
         try {
-          await interaction.member.roles.add(role);
+          await interaction.member.roles.add(rolesToGive);
+          const roleNames = rolesToGive.map((r) => `**${r.name}**`).join(" và ");
           return await interaction.reply({
-            content: `🎉 **Xác minh thành công!**\nBạn đã nhận được role **${role.name}** và toàn bộ kênh của **Shark Store** đã được mở ra.\nChúc bạn có trải nghiệm mua sắm tuyệt vời! 🦈`,
+            content: `🎉 **Xác minh thành công!**\nBạn đã nhận được role ${roleNames} và toàn bộ kênh của **Shark Store** đã được mở ra.\nChúc bạn có trải nghiệm mua sắm tuyệt vời! 🦈`,
             ephemeral: true,
           });
         } catch (err) {
           console.error("Lỗi khi cấp role xác minh:", err);
           return await interaction.reply({
             content:
-              "❌ Bot không đủ quyền cấp role. Vui lòng báo Admin kiểm tra quyền phân cấp của Bot!",
+              "❌ Bot không đủ quyền cấp role. Vui lòng báo Admin kéo Role của Bot (Shark Store) lên cao hơn các Role này!",
             ephemeral: true,
           });
         }
