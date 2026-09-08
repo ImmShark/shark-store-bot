@@ -1,0 +1,4 @@
+node_modules/
+.env
+shark-store-bot.zip
+*.log
