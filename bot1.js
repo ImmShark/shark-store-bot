@@ -493,6 +493,45 @@ client.on("interactionCreate", async (interaction) => {
         });
       }
 
+      if (commandName === "announce") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
+        }
+        const channel = interaction.options.getChannel("channel");
+        const title = interaction.options.getString("title");
+        const content = interaction.options.getString("content");
+        const imageUrl = interaction.options.getString("image_url");
+        const colors = {
+          pink: "#ff6fae",
+          blue: "#008cff",
+          red: "#ed4245",
+          yellow: "#f0b232",
+          purple: "#9b59b6",
+        };
+        const color = colors[interaction.options.getString("color")] || colors.blue;
+        if (!channel?.isTextBased()) {
+          return await interaction.reply({ content: "❌ Kênh này không thể nhận thông báo.", ephemeral: true });
+        }
+        if (imageUrl) {
+          try {
+            const image = new URL(imageUrl);
+            if (!/^https?:$/.test(image.protocol)) throw new Error("protocol");
+          } catch {
+            return await interaction.reply({ content: "❌ Link banner phải bắt đầu bằng http:// hoặc https://", ephemeral: true });
+          }
+        }
+        const embed = new EmbedBuilder()
+          .setColor(color)
+          .setTitle(title)
+          .setDescription(content)
+          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setFooter({ text: `Shark Store • Thông báo bởi ${interaction.user.username}` })
+          .setTimestamp();
+        if (imageUrl) embed.setImage(imageUrl);
+        await channel.send({ embeds: [embed] });
+        return await interaction.reply({ content: `✅ Đã gửi thông báo vào ${channel}.`, ephemeral: true });
+      }
+
       // Lệnh xem thống kê legit
       if (commandName === "legit-stats") {
         const count = guildSettings[interaction.guild.id]?.legitCount || 0;

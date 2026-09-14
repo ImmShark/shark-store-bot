@@ -89,6 +89,40 @@ const commands = [
       option.setName("price").setDescription("Giá hiển thị, ví dụ: 150.000 VNĐ").setRequired(true).setMaxLength(80),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("announce")
+    .setDescription("[Admin] Gửi thông báo dạng embed vào một kênh.")
+    .addChannelOption((option) =>
+      option
+        .setName("channel")
+        .setDescription("Kênh nhận thông báo")
+        .setRequired(true)
+        .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement),
+    )
+    .addStringOption((option) =>
+      option.setName("title").setDescription("Tiêu đề thông báo").setRequired(true).setMaxLength(256),
+    )
+    .addStringOption((option) =>
+      option.setName("content").setDescription("Nội dung thông báo").setRequired(true).setMaxLength(4000),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("color")
+        .setDescription("Màu: hồng, xanh, đỏ, vàng, tím")
+        .setRequired(false)
+        .addChoices(
+          { name: "Hồng", value: "pink" },
+          { name: "Xanh", value: "blue" },
+          { name: "Đỏ", value: "red" },
+          { name: "Vàng", value: "yellow" },
+          { name: "Tím", value: "purple" },
+        ),
+    )
+    .addStringOption((option) =>
+      option.setName("image_url").setDescription("Link banner/ảnh (không bắt buộc)").setRequired(false).setMaxLength(2000),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);
