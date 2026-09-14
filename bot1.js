@@ -540,6 +540,52 @@ client.on("interactionCreate", async (interaction) => {
         });
       }
 
+      if (commandName === "announce-template") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
+        }
+        const channel = interaction.options.getChannel("channel");
+        const template = interaction.options.getString("template");
+        const pingEveryone = interaction.options.getBoolean("ping_everyone") || false;
+        if (!channel?.isTextBased()) {
+          return await interaction.reply({ content: "❌ Kênh này không thể nhận thông báo.", ephemeral: true });
+        }
+        const templates = {
+          sale: {
+            color: "#ff6fae",
+            title: "🔥 FLASH SALE • SHARK STORE",
+            description: "Ưu đãi đang diễn ra! Nhanh tay tạo ticket để được hỗ trợ và nhận giá tốt nhất nhé. 🦈",
+          },
+          maintenance: {
+            color: "#f0b232",
+            title: "🔧 THÔNG BÁO BẢO TRÌ",
+            description: "Shark Store đang bảo trì trong thời gian ngắn để cải thiện trải nghiệm. Một số phản hồi có thể chậm hơn bình thường — cảm ơn bạn đã chờ đợi!",
+          },
+          restock: {
+            color: "#00b894",
+            title: "📦 RESTOCK • HÀNG ĐÃ VỀ",
+            description: "Sản phẩm đã được bổ sung! Xem bảng giá hoặc tạo ticket ngay để được hỗ trợ nhanh nhất. 🦈",
+          },
+        };
+        const data = templates[template];
+        const embed = new EmbedBuilder()
+          .setColor(data.color)
+          .setTitle(data.title)
+          .setDescription(data.description)
+          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setFooter({ text: "Shark Store • Cảm ơn bạn đã ủng hộ" })
+          .setTimestamp();
+        await channel.send({
+          content: pingEveryone ? "@everyone" : undefined,
+          embeds: [embed],
+          allowedMentions: { parse: pingEveryone ? ["everyone"] : [] },
+        });
+        return await interaction.reply({
+          content: `✅ Đã gửi mẫu **${template}** vào ${channel}${pingEveryone ? " và tag @everyone" : ""}.`,
+          ephemeral: true,
+        });
+      }
+
       // Lệnh xem thống kê legit
       if (commandName === "legit-stats") {
         const count = guildSettings[interaction.guild.id]?.legitCount || 0;

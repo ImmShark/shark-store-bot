@@ -126,6 +126,32 @@ const commands = [
       option.setName("ping_everyone").setDescription("Tag @everyone cùng thông báo (mặc định: không)"),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("announce-template")
+    .setDescription("[Admin] Gửi nhanh mẫu thông báo sale, bảo trì hoặc restock.")
+    .addChannelOption((option) =>
+      option
+        .setName("channel")
+        .setDescription("Kênh nhận thông báo")
+        .setRequired(true)
+        .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("template")
+        .setDescription("Mẫu thông báo")
+        .setRequired(true)
+        .addChoices(
+          { name: "🔥 Sale", value: "sale" },
+          { name: "🔧 Bảo trì", value: "maintenance" },
+          { name: "📦 Restock", value: "restock" },
+        ),
+    )
+    .addBooleanOption((option) =>
+      option.setName("ping_everyone").setDescription("Tag @everyone (mặc định: không)"),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);
