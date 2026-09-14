@@ -38,6 +38,11 @@ function loadSettings() {
       const data = fs.readFileSync(config.SETTINGS_FILE, "utf8");
       guildSettings = JSON.parse(data);
       console.log("✅ Đã tải cấu hình từ", config.SETTINGS_FILE);
+    } else if (fs.existsSync(config.DEFAULT_SETTINGS_FILE)) {
+      const data = fs.readFileSync(config.DEFAULT_SETTINGS_FILE, "utf8");
+      guildSettings = JSON.parse(data);
+      saveSettings();
+      console.log("✅ Đã khởi tạo cấu hình Volume từ file mặc định.");
     } else {
       console.log("ℹ️ Chưa có file cài đặt, sẽ tạo mới khi có lệnh setup.");
     }
@@ -48,6 +53,7 @@ function loadSettings() {
 
 function saveSettings() {
   try {
+    fs.mkdirSync(require("path").dirname(config.SETTINGS_FILE), { recursive: true });
     fs.writeFileSync(
       config.SETTINGS_FILE,
       JSON.stringify(guildSettings, null, 2),
@@ -55,6 +61,41 @@ function saveSettings() {
     );
   } catch (error) {
     console.error("❌ Lỗi khi ghi file cài đặt:", error);
+  }
+}
+
+function getGuildTicketStore(guildId) {
+  if (!guildSettings[guildId]) guildSettings[guildId] = {};
+  if (!guildSettings[guildId].tickets) guildSettings[guildId].tickets = {};
+  return guildSettings[guildId].tickets;
+}
+
+async function closeTicket(channel, guildId, reason) {
+  await channel.delete(reason);
+  if (guildSettings[guildId]?.tickets) {
+    delete guildSettings[guildId].tickets[channel.id];
+    saveSettings();
+  }
+}
+
+async function closeInactiveTickets() {
+  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+  for (const [guildId, settings] of Object.entries(guildSettings)) {
+    for (const [channelId, ticket] of Object.entries(settings.tickets || {})) {
+      if (ticket.lastActivityAt > cutoff) continue;
+      const guild = client.guilds.cache.get(guildId);
+      const channel = guild ? await guild.channels.fetch(channelId).catch(() => null) : null;
+      if (!channel?.isTextBased()) {
+        delete settings.tickets[channelId];
+        saveSettings();
+        continue;
+      }
+      try {
+        await closeTicket(channel, guildId, "Tự động đóng sau 2 ngày không hoạt động");
+      } catch (error) {
+        console.error(`Không thể tự đóng ticket ${channelId}:`, error);
+      }
+    }
   }
 }
 
@@ -293,6 +334,16 @@ async function sendPriceList(interactionOrMessage) {
   }
 }
 
+function getPriceFields(guildId, category) {
+  const overrides = guildSettings[guildId]?.priceOverrides?.[category.id] || {};
+  return category.embed.fields.map((field, index) => {
+    const price = overrides[index + 1];
+    return price
+      ? { ...field, value: `\`\`\`PRICE : ${price}\`\`\`` }
+      : field;
+  });
+}
+
 // Xử lý tin nhắn legit
 async function handleLegitMessage(message) {
   const guildId = message.guild.id;
@@ -346,6 +397,8 @@ client.once("ready", async () => {
   loadSettings();
   console.log(`🚀 Bot đã online thành công: ${client.user.tag}`);
   await checkAndRestoreLegitState();
+  await closeInactiveTickets();
+  setInterval(closeInactiveTickets, 60 * 60 * 1000).unref();
 });
 
 // Bộ lắng nghe tương tác (Interactions)
@@ -395,6 +448,47 @@ client.on("interactionCreate", async (interaction) => {
         return await interaction.reply({
           content: `## Xem trước bố cục server\n${formatServerLayoutPlan(plan)}\n\n⚠️ Mục **Xóa vĩnh viễn** sẽ chỉ được thực hiện khi bạn bấm **Xác nhận áp dụng**.`,
           components: [confirmationRow],
+          ephemeral: true,
+        });
+      }
+
+      if (commandName === "set-revenue") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
+        }
+        if (!guildSettings[interaction.guild.id]) guildSettings[interaction.guild.id] = {};
+        const amount = interaction.options.getInteger("amount");
+        guildSettings[interaction.guild.id].revenue = amount;
+        saveSettings();
+        return await interaction.reply({
+          content: `✅ Dashboard đã cập nhật tổng doanh thu: **${amount.toLocaleString("vi-VN")} VNĐ**.`,
+          ephemeral: true,
+        });
+      }
+
+      if (commandName === "set-price") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
+        }
+        const categoryId = interaction.options.getString("category");
+        const item = interaction.options.getInteger("item");
+        const price = interaction.options.getString("price");
+        const category = messages.priceCategories.find((entry) => entry.id === categoryId);
+        if (!category || !category.embed.fields[item - 1]) {
+          const ids = messages.priceCategories.map((entry) => `\`${entry.id}\``).join(", ");
+          return await interaction.reply({
+            content: `❌ Category hoặc dòng giá không hợp lệ. Category có thể dùng: ${ids}`,
+            ephemeral: true,
+          });
+        }
+        if (!guildSettings[interaction.guild.id]) guildSettings[interaction.guild.id] = {};
+        const settings = guildSettings[interaction.guild.id];
+        if (!settings.priceOverrides) settings.priceOverrides = {};
+        if (!settings.priceOverrides[categoryId]) settings.priceOverrides[categoryId] = {};
+        settings.priceOverrides[categoryId][item] = price;
+        saveSettings();
+        return await interaction.reply({
+          content: `✅ Đã đổi giá dòng **${item}** của **${category.label}** thành **${price}**.`,
           ephemeral: true,
         });
       }
@@ -750,12 +844,13 @@ client.on("interactionCreate", async (interaction) => {
       // Nút Xác Nhận Đóng Ticket
       if (customId === "confirm_close_ticket") {
         await interaction.reply({
-          content: "🔒 **Ticket sẽ được đóng và xoá sau 3 giây...**",
+          content: "🔒 Đang đóng ticket…",
         });
-
-        setTimeout(async () => {
-          await interaction.channel.delete().catch(() => {});
-        }, 3000);
+        await closeTicket(
+          interaction.channel,
+          interaction.guild.id,
+          `Đóng thủ công bởi ${interaction.user.tag}`,
+        );
         return;
       }
 
@@ -857,6 +952,16 @@ client.on("interactionCreate", async (interaction) => {
           const roleNames = rolesToGive
             .map((r) => `**${r.name}**`)
             .join(" và ");
+          const welcomeChannel =
+            guild.systemChannel ||
+            guild.channels.cache.find(
+              (channel) =>
+                channel.type === ChannelType.GuildText &&
+                normalizeChannelName(channel.name) === "chat-chung",
+            );
+          await welcomeChannel
+            ?.send(`🎉 Chào mừng ${interaction.user} đến với **Shark Store**! Xem **Bảng Giá** hoặc tạo **Ticket Mua Hàng** khi bạn cần hỗ trợ.`)
+            .catch(() => {});
           return await interaction.reply({
             content: `🎉 **Xác minh thành công!**\nBạn đã nhận được role ${roleNames} và toàn bộ kênh của **Shark Store** đã được mở ra.\nChúc bạn có trải nghiệm mua sắm tuyệt vời! 🦈`,
             ephemeral: true,
@@ -942,6 +1047,14 @@ client.on("interactionCreate", async (interaction) => {
 
       const ticketCode = Math.floor(100000 + Math.random() * 900000);
       const ticketMemo = `SHARK ${ticketCode}`;
+      getGuildTicketStore(interaction.guild.id)[ticketChannel.id] = {
+        userId: interaction.user.id,
+        createdAt: Date.now(),
+        lastActivityAt: Date.now(),
+        ticketCode,
+        type: isBuy ? "buy" : "support",
+      };
+      saveSettings();
 
       // Hàng nút tương tác trong ticket
       const ticketActionRow = new ActionRowBuilder().addComponents(
@@ -1028,7 +1141,7 @@ client.on("interactionCreate", async (interaction) => {
           const categoryEmbed = new EmbedBuilder()
             .setTitle(category.embed.title)
             .setColor(category.embed.color)
-            .addFields(category.embed.fields);
+            .addFields(getPriceFields(interaction.guild.id, category));
 
           if (category.embed.imageUrl) {
             categoryEmbed.setImage(category.embed.imageUrl);
@@ -1064,6 +1177,12 @@ client.on("interactionCreate", async (interaction) => {
 // Lắng nghe sự kiện tin nhắn (Prefix & Kênh Legit)
 client.on("messageCreate", async (message) => {
   if (message.author.bot || !message.guild) return;
+
+  const ticket = guildSettings[message.guild.id]?.tickets?.[message.channel.id];
+  if (ticket) {
+    ticket.lastActivityAt = Date.now();
+    saveSettings();
+  }
 
   const settings = guildSettings[message.guild.id];
 
@@ -1118,6 +1237,24 @@ const http = require("http");
 const PORT = process.env.PORT || 10000;
 
 const server = http.createServer((req, res) => {
+  const requestUrl = new URL(req.url, "http://localhost");
+  if (requestUrl.pathname === "/dashboard") {
+    const dashboardToken = process.env.DASHBOARD_TOKEN;
+    if (!dashboardToken || requestUrl.searchParams.get("token") !== dashboardToken) {
+      res.writeHead(401, { "Content-Type": "text/plain; charset=utf-8" });
+      return res.end("Unauthorized");
+    }
+    const cards = [...client.guilds.cache.values()]
+      .map((guild) => {
+        const settings = guildSettings[guild.id] || {};
+        const openTickets = Object.keys(settings.tickets || {}).length;
+        const revenue = Number(settings.revenue || 0).toLocaleString("vi-VN");
+        return `<section><h2>${escapeHtml(guild.name)}</h2><div class="grid"><p><b>${openTickets}</b><span>ticket đang mở</span></p><p><b>${settings.legitCount || 0}</b><span>đơn legit</span></p><p><b>${revenue} VNĐ</b><span>doanh thu thủ công</span></p></div></section>`;
+      })
+      .join("");
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    return res.end(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Shark Store Dashboard</title><style>body{font:16px system-ui;background:#101322;color:#eff2ff;max-width:1000px;margin:40px auto;padding:0 20px}section{background:#1b2035;border-radius:14px;padding:20px;margin:16px 0}.grid{display:flex;gap:16px;flex-wrap:wrap}.grid p{background:#252c48;border-radius:10px;padding:16px;min-width:160px}.grid b{font-size:24px;display:block}.grid span{color:#b9c2df}</style></head><body><h1>🦈 Shark Store Dashboard</h1><p>Cập nhật trực tiếp từ bot.</p>${cards || "<p>Bot chưa kết nối server nào.</p>"}</body></html>`);
+  }
   res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
   res.end("🦈 Shark Store Discord Bot is Running 24/7!");
 });

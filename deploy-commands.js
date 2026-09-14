@@ -63,6 +63,32 @@ const commands = [
     .setName("setup-server")
     .setDescription("[Admin] Xem trước và áp dụng bố cục kênh Shark Store.")
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("set-revenue")
+    .setDescription("[Admin] Cập nhật tổng doanh thu thủ công cho dashboard.")
+    .addIntegerOption((option) =>
+      option
+        .setName("amount")
+        .setDescription("Tổng doanh thu (VND)")
+        .setRequired(true)
+        .setMinValue(0),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("set-price")
+    .setDescription("[Admin] Đổi giá một dòng trong bảng giá, không cần deploy.")
+    .addStringOption((option) =>
+      option.setName("category").setDescription("Mã category của bảng giá").setRequired(true),
+    )
+    .addIntegerOption((option) =>
+      option.setName("item").setDescription("Số thứ tự dòng giá (bắt đầu từ 1)").setRequired(true).setMinValue(1),
+    )
+    .addStringOption((option) =>
+      option.setName("price").setDescription("Giá hiển thị, ví dụ: 150.000 VNĐ").setRequired(true).setMaxLength(80),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);
