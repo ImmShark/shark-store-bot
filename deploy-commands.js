@@ -122,6 +122,9 @@ const commands = [
     .addStringOption((option) =>
       option.setName("image_url").setDescription("Link banner/ảnh (không bắt buộc)").setRequired(false).setMaxLength(2000),
     )
+    .addBooleanOption((option) =>
+      option.setName("ping_everyone").setDescription("Tag @everyone cùng thông báo (mặc định: không)"),
+    )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ];
 

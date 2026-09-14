@@ -501,6 +501,7 @@ client.on("interactionCreate", async (interaction) => {
         const title = interaction.options.getString("title");
         const content = interaction.options.getString("content");
         const imageUrl = interaction.options.getString("image_url");
+        const pingEveryone = interaction.options.getBoolean("ping_everyone") || false;
         const colors = {
           pink: "#ff6fae",
           blue: "#008cff",
@@ -528,8 +529,15 @@ client.on("interactionCreate", async (interaction) => {
           .setFooter({ text: `Shark Store • Thông báo bởi ${interaction.user.username}` })
           .setTimestamp();
         if (imageUrl) embed.setImage(imageUrl);
-        await channel.send({ embeds: [embed] });
-        return await interaction.reply({ content: `✅ Đã gửi thông báo vào ${channel}.`, ephemeral: true });
+        await channel.send({
+          content: pingEveryone ? "@everyone" : undefined,
+          embeds: [embed],
+          allowedMentions: { parse: pingEveryone ? ["everyone"] : [] },
+        });
+        return await interaction.reply({
+          content: `✅ Đã gửi thông báo vào ${channel}${pingEveryone ? " và tag @everyone" : ""}.`,
+          ephemeral: true,
+        });
       }
 
       // Lệnh xem thống kê legit
