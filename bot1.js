@@ -58,6 +58,153 @@ function saveSettings() {
   }
 }
 
+// Bố cục theo yêu cầu của Shark Store. Chỉ đổi tên kênh text hiện có để
+// giữ nguyên tin nhắn, quyền và cấu hình của từng kênh.
+const TEXT_CHANNEL_RENAMES = [
+  { names: ["luat-shop", "luat shop"], target: "📕・Luật-Shop" },
+  { names: ["thong-bao", "thông-báo", "thong bao"], target: "📢・Thông-báo" },
+  { names: ["bang-gia", "bảng-giá", "bang gia"], target: "🛒・Bảng-Giá" },
+  {
+    names: ["ticket-mua-hang", "ticket mua hang", "ticket-muahàng"],
+    target: "🎫・Ticket-Mua-Hàng",
+  },
+  { names: ["legit"], target: "🌸・Legit" },
+  { names: ["stock"], target: "📦・Stock" },
+  { names: ["chat-chung", "chat chung"], target: "💬・CHAT-CHUNG" },
+  { names: ["bot"], target: "🎧・BOT" },
+];
+
+const VOICE_CHANNELS = [
+  { name: "📞・Phòng Chờ Hỗ Trợ", limit: 2 },
+  { name: "🔴・Sảnh Chém Gió 1", limit: 0 },
+  { name: "🔴・Sảnh Chém Gió 2", limit: 0 },
+  { name: "🔒・Phòng Đôi 1", limit: 2 },
+  { name: "🔒・Phòng Đôi 2", limit: 2 },
+  { name: "👥・Phòng Nhóm", limit: 4 },
+  { name: "🎵・Chill & Nghe Nhạc", limit: 0 },
+  { name: "🛩️・Treo Máy AFK", limit: 0 },
+];
+
+const INTERNAL_CHANNEL_NAMES = [
+  "thông-báo-nội-bộ",
+  "thong-bao-noi-bo",
+  "chat-crew",
+  "mfk",
+  "phòng-tuyển-dụng",
+  "phong-tuyen-dung",
+];
+
+function normalizeChannelName(name) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/^[^\p{L}\p{N}]+/gu, "")
+    .replace(/[・_\s]+/g, "-")
+    .toLowerCase();
+}
+
+function findTextChannelForRename(guild, candidates) {
+  const normalizedCandidates = candidates.map(normalizeChannelName);
+  return guild.channels.cache.find(
+    (channel) =>
+      channel.type === ChannelType.GuildText &&
+      normalizedCandidates.includes(normalizeChannelName(channel.name)),
+  );
+}
+
+function getServerLayoutPlan(guild) {
+  const renameActions = TEXT_CHANNEL_RENAMES.flatMap(({ names, target }) => {
+    const channel = findTextChannelForRename(guild, names);
+    return channel && channel.name !== target ? [{ channel, target }] : [];
+  });
+  const voiceActions = VOICE_CHANNELS.filter(
+    ({ name }) =>
+      !guild.channels.cache.some(
+        (channel) => channel.type === ChannelType.GuildVoice && channel.name === name,
+      ),
+  );
+  const deleteActions = guild.channels.cache.filter(
+    (channel) =>
+      INTERNAL_CHANNEL_NAMES.includes(normalizeChannelName(channel.name)) &&
+      channel.type !== ChannelType.GuildCategory,
+  );
+  const workCategory = guild.channels.cache.find(
+    (channel) =>
+      channel.type === ChannelType.GuildCategory &&
+      normalizeChannelName(channel.name) === "phong-lam-viec",
+  );
+
+  return { renameActions, voiceActions, deleteActions, workCategory };
+}
+
+function formatServerLayoutPlan(plan) {
+  const lines = [];
+  lines.push("**Đổi tên (giữ nguyên tin nhắn và quyền):**");
+  lines.push(
+    plan.renameActions.length
+      ? plan.renameActions.map(({ channel, target }) => `• ${channel.name} → ${target}`).join("\n")
+      : "• Không có",
+  );
+  lines.push("\n**Tạo voice channel:**");
+  lines.push(
+    plan.voiceActions.length
+      ? plan.voiceActions.map(({ name, limit }) => `• ${name}${limit ? ` — giới hạn ${limit}` : ""}`).join("\n")
+      : "• Không có",
+  );
+  lines.push("\n**Xóa vĩnh viễn:**");
+  const deletions = plan.deleteActions.map((channel) => `• #${channel.name}`);
+  if (plan.workCategory) deletions.push(`• Category ${plan.workCategory.name} (sau khi các kênh trên đã xóa)`);
+  lines.push(deletions.length ? deletions.join("\n") : "• Không có");
+  return lines.join("\n");
+}
+
+async function applyServerLayout(guild) {
+  const plan = getServerLayoutPlan(guild);
+  const completed = [];
+  const problems = [];
+
+  for (const { channel, target } of plan.renameActions) {
+    try {
+      await channel.setName(target, "Chuẩn hóa bố cục Shark Store");
+      completed.push(`Đã đổi tên ${target}`);
+    } catch (error) {
+      problems.push(`Không thể đổi tên ${channel.name}: ${error.message}`);
+    }
+  }
+  for (const { name, limit } of plan.voiceActions) {
+    try {
+      await guild.channels.create({ name, type: ChannelType.GuildVoice, userLimit: limit });
+      completed.push(`Đã tạo ${name}`);
+    } catch (error) {
+      problems.push(`Không thể tạo ${name}: ${error.message}`);
+    }
+  }
+  for (const channel of plan.deleteActions) {
+    try {
+      await channel.delete("Dọn khu vực nội bộ theo yêu cầu quản trị viên");
+      completed.push(`Đã xóa #${channel.name}`);
+    } catch (error) {
+      problems.push(`Không thể xóa #${channel.name}: ${error.message}`);
+    }
+  }
+  if (plan.workCategory) {
+    const remainingChildren = guild.channels.cache.filter(
+      (channel) => channel.parentId === plan.workCategory.id,
+    );
+    if (remainingChildren.size) {
+      problems.push(`Chưa xóa category ${plan.workCategory.name} vì vẫn còn ${remainingChildren.size} kênh bên trong.`);
+    } else {
+      try {
+        await plan.workCategory.delete("Dọn khu vực nội bộ theo yêu cầu quản trị viên");
+        completed.push(`Đã xóa category ${plan.workCategory.name}`);
+      } catch (error) {
+        problems.push(`Không thể xóa category ${plan.workCategory.name}: ${error.message}`);
+      }
+    }
+  }
+  return { completed, problems };
+}
+
 // Kiểm tra và phục hồi trạng thái legit khi bot khởi động lại
 async function checkAndRestoreLegitState() {
   for (const guildId in guildSettings) {
@@ -65,10 +212,14 @@ async function checkAndRestoreLegitState() {
     if (!settings || !settings.legitChannelId) continue;
 
     try {
-      const channel = await client.channels.fetch(settings.legitChannelId).catch(() => null);
+      const channel = await client.channels
+        .fetch(settings.legitChannelId)
+        .catch(() => null);
       if (!channel) continue;
 
-      const messagesInChannel = await channel.messages.fetch({ limit: 2 }).catch(() => null);
+      const messagesInChannel = await channel.messages
+        .fetch({ limit: 2 })
+        .catch(() => null);
       if (!messagesInChannel) continue;
 
       const lastMessage = messagesInChannel.first();
@@ -79,12 +230,19 @@ async function checkAndRestoreLegitState() {
       );
 
       if (matchedPrefix) {
-        const productName = lastMessage.content.substring(matchedPrefix.length).trim();
+        const productName = lastMessage.content
+          .substring(matchedPrefix.length)
+          .trim();
         if (!productName) continue;
 
         const secondLastMessage = messagesInChannel.last();
-        if (!secondLastMessage || secondLastMessage.id !== settings.lastLegitEmbedId) {
-          console.log(`[PHỤC HỒI] Xử lý lại tin nhắn legit chưa phản hồi trong kênh ${channel.name}`);
+        if (
+          !secondLastMessage ||
+          secondLastMessage.id !== settings.lastLegitEmbedId
+        ) {
+          console.log(
+            `[PHỤC HỒI] Xử lý lại tin nhắn legit chưa phản hồi trong kênh ${channel.name}`,
+          );
           await handleLegitMessage(lastMessage);
         }
       }
@@ -166,7 +324,9 @@ async function handleLegitMessage(message) {
     const embedData = messages.legitCheck.embed;
     const embed = new EmbedBuilder()
       .setTitle(embedData.title)
-      .setDescription(embedData.description(message.content, settings.legitCount))
+      .setDescription(
+        embedData.description(message.content, settings.legitCount),
+      )
       .setColor(embedData.color)
       .setImage(embedData.gifUrl)
       .setThumbnail(config.BANK_INFO.logoUrl)
@@ -195,7 +355,9 @@ client.on("interactionCreate", async (interaction) => {
     if (interaction.isChatInputCommand()) {
       const { commandName } = interaction;
       const isOwner = interaction.user.id === config.OWNER_ID;
-      const isAdmin = interaction.member?.permissions.has(PermissionFlagsBits.Administrator);
+      const isAdmin = interaction.member?.permissions.has(
+        PermissionFlagsBits.Administrator,
+      );
 
       // Lệnh xem bảng giá
       if (commandName === "banggia") {
@@ -205,6 +367,36 @@ client.on("interactionCreate", async (interaction) => {
       // Lệnh gửi mã VietQR
       if (commandName === "qr") {
         return await qrCommand.execute(interaction);
+      }
+
+      // Xem trước bố cục server. Các thao tác xóa chỉ xuất hiện sau khi admin
+      // bấm nút xác nhận trong phản hồi riêng tư này.
+      if (commandName === "setup-server") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({
+            content: "❌ Bạn không có quyền sử dụng lệnh này.",
+            ephemeral: true,
+          });
+        }
+
+        const plan = getServerLayoutPlan(interaction.guild);
+        const confirmationRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("confirm_server_layout")
+            .setLabel("Xác nhận áp dụng")
+            .setEmoji("⚠️")
+            .setStyle(ButtonStyle.Danger),
+          new ButtonBuilder()
+            .setCustomId("cancel_server_layout")
+            .setLabel("Hủy")
+            .setStyle(ButtonStyle.Secondary),
+        );
+
+        return await interaction.reply({
+          content: `## Xem trước bố cục server\n${formatServerLayoutPlan(plan)}\n\n⚠️ Mục **Xóa vĩnh viễn** sẽ chỉ được thực hiện khi bạn bấm **Xác nhận áp dụng**.`,
+          components: [confirmationRow],
+          ephemeral: true,
+        });
       }
 
       // Lệnh xem thống kê legit
@@ -256,7 +448,7 @@ client.on("interactionCreate", async (interaction) => {
           role = interaction.guild.roles.cache.find(
             (r) =>
               r.name.toLowerCase() === "khách hàng" ||
-              r.name.toLowerCase() === "khach hang"
+              r.name.toLowerCase() === "khach hang",
           );
         }
 
@@ -270,7 +462,8 @@ client.on("interactionCreate", async (interaction) => {
           } catch (err) {
             console.error("Lỗi khi tạo role:", err);
             return await interaction.editReply({
-              content: "❌ Không thể tạo role Khách Hàng. Vui lòng kiểm tra quyền của Bot.",
+              content:
+                "❌ Không thể tạo role Khách Hàng. Vui lòng kiểm tra quyền của Bot.",
             });
           }
         }
@@ -286,7 +479,7 @@ client.on("interactionCreate", async (interaction) => {
           (c) =>
             c.name.includes("xác-minh") ||
             c.name.includes("xac-minh") ||
-            c.name.includes("verify")
+            c.name.includes("verify"),
         );
 
         if (!verifyChannel) {
@@ -324,7 +517,8 @@ client.on("interactionCreate", async (interaction) => {
           } catch (err) {
             console.error("Lỗi khi tạo kênh xác minh:", err);
             return await interaction.editReply({
-              content: "❌ Không thể tạo kênh xác minh. Vui lòng kiểm tra quyền của Bot.",
+              content:
+                "❌ Không thể tạo kênh xác minh. Vui lòng kiểm tra quyền của Bot.",
             });
           }
         }
@@ -341,10 +535,10 @@ client.on("interactionCreate", async (interaction) => {
 Để mở khóa các kênh **Bảng Giá**, **Mua Hàng / Ticket** và **Giao Lưu**, vui lòng nhấn vào nút bên dưới để xác minh tài khoản của bạn.
 
 > ⚠️ *Việc xác minh giúp bảo vệ cộng đồng và ngăn chặn tài khoản spam/clone.*
-`
+`,
           )
           .setImage(
-            "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283"
+            "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283",
           )
           .setFooter({
             text: "Shark Store • Nhấn nút bên dưới để hoàn tất xác minh",
@@ -355,7 +549,7 @@ client.on("interactionCreate", async (interaction) => {
             .setCustomId("verify_member_btn")
             .setLabel("Xác Minh Ngay")
             .setEmoji("✅")
-            .setStyle(ButtonStyle.Success)
+            .setStyle(ButtonStyle.Success),
         );
 
         await verifyChannel.send({
@@ -441,7 +635,10 @@ client.on("interactionCreate", async (interaction) => {
           const sampleEmbed = new EmbedBuilder()
             .setTitle(embedData.title)
             .setDescription(
-              embedData.description("+1 legit Nitro Boost 1 Tháng (Mẫu)", guildSettings[guildId].legitCount || 1),
+              embedData.description(
+                "+1 legit Nitro Boost 1 Tháng (Mẫu)",
+                guildSettings[guildId].legitCount || 1,
+              ),
             )
             .setColor(embedData.color)
             .setImage(embedData.gifUrl);
@@ -459,6 +656,42 @@ client.on("interactionCreate", async (interaction) => {
     if (interaction.isButton()) {
       const { customId } = interaction;
 
+      if (customId === "cancel_server_layout") {
+        return await interaction.update({
+          content: "✅ Đã hủy. Server chưa bị thay đổi.",
+          components: [],
+        });
+      }
+
+      if (customId === "confirm_server_layout") {
+        const isOwner = interaction.user.id === config.OWNER_ID;
+        const isAdmin = interaction.member?.permissions.has(
+          PermissionFlagsBits.Administrator,
+        );
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({
+            content: "❌ Bạn không có quyền áp dụng bố cục server.",
+            ephemeral: true,
+          });
+        }
+
+        await interaction.update({
+          content: "⏳ Đang áp dụng bố cục server…",
+          components: [],
+        });
+        const result = await applyServerLayout(interaction.guild);
+        const completed = result.completed.length
+          ? result.completed.map((item) => `✅ ${item}`).join("\n")
+          : "ℹ️ Không có thay đổi nào cần áp dụng.";
+        const problems = result.problems.length
+          ? `\n\n**Cần xử lý:**\n${result.problems.map((item) => `⚠️ ${item}`).join("\n")}`
+          : "";
+        return await interaction.editReply({
+          content: `## Hoàn tất thiết lập server\n${completed}${problems}`,
+          components: [],
+        });
+      }
+
       // Nút mở Modal Mua Hàng / Hỗ Trợ
       if (customId === "buy_ticket" || customId === "support_ticket") {
         const isBuy = customId === "buy_ticket";
@@ -469,7 +702,11 @@ client.on("interactionCreate", async (interaction) => {
         const productInput = new TextInputBuilder()
           .setCustomId("product")
           .setLabel(isBuy ? "Sản phẩm bạn muốn mua:" : "Vấn đề bạn cần hỗ trợ:")
-          .setPlaceholder(isBuy ? "VD: Nitro Boost 1 Năm, Canva Pro..." : "Mô tả ngắn gọn vấn đề...")
+          .setPlaceholder(
+            isBuy
+              ? "VD: Nitro Boost 1 Năm, Canva Pro..."
+              : "Mô tả ngắn gọn vấn đề...",
+          )
           .setStyle(TextInputStyle.Short)
           .setRequired(true);
 
@@ -503,7 +740,8 @@ client.on("interactionCreate", async (interaction) => {
         );
 
         return await interaction.reply({
-          content: "⚠️ **Bạn có chắc chắn muốn đóng ticket này không?** Sau khi đóng, kênh chat sẽ bị xóa vĩnh viễn.",
+          content:
+            "⚠️ **Bạn có chắc chắn muốn đóng ticket này không?** Sau khi đóng, kênh chat sẽ bị xóa vĩnh viễn.",
           components: [confirmRow],
           ephemeral: false,
         });
@@ -580,7 +818,7 @@ client.on("interactionCreate", async (interaction) => {
           role1 = guild.roles.cache.find(
             (r) =>
               r.name.toLowerCase() === "khách hàng" ||
-              r.name.toLowerCase() === "khach hang"
+              r.name.toLowerCase() === "khach hang",
           );
         }
         if (role1) rolesToGive.push(role1);
@@ -590,7 +828,7 @@ client.on("interactionCreate", async (interaction) => {
           (r) =>
             r.name === "══✿══╡°˖✧ 𝐈𝐍𝟒 ✧˖°╞══✿══" ||
             r.name.includes("𝐈𝐍𝟒") ||
-            r.name.includes("IN4")
+            r.name.includes("IN4"),
         );
         if (role2) rolesToGive.push(role2);
 
@@ -603,19 +841,22 @@ client.on("interactionCreate", async (interaction) => {
 
         // Kiểm tra xem thành viên đã có đủ các role chưa
         const hasAllRoles = rolesToGive.every((r) =>
-          interaction.member.roles.cache.has(r.id)
+          interaction.member.roles.cache.has(r.id),
         );
 
         if (hasAllRoles) {
           return await interaction.reply({
-            content: "ℹ️ Bạn đã xác minh tài khoản rồi! Không cần bấm lại nữa nhé.",
+            content:
+              "ℹ️ Bạn đã xác minh tài khoản rồi! Không cần bấm lại nữa nhé.",
             ephemeral: true,
           });
         }
 
         try {
           await interaction.member.roles.add(rolesToGive);
-          const roleNames = rolesToGive.map((r) => `**${r.name}**`).join(" và ");
+          const roleNames = rolesToGive
+            .map((r) => `**${r.name}**`)
+            .join(" và ");
           return await interaction.reply({
             content: `🎉 **Xác minh thành công!**\nBạn đã nhận được role ${roleNames} và toàn bộ kênh của **Shark Store** đã được mở ra.\nChúc bạn có trải nghiệm mua sắm tuyệt vời! 🦈`,
             ephemeral: true,
@@ -735,7 +976,9 @@ client.on("interactionCreate", async (interaction) => {
 ╰───────────────╯
 `,
         )
-        .setFooter({ text: "Nhân viên Shark Store sẽ hỗ trợ bạn ngay trong giây lát!" })
+        .setFooter({
+          text: "Nhân viên Shark Store sẽ hỗ trợ bạn ngay trong giây lát!",
+        })
         .setTimestamp();
 
       const embedsToSend = [ticketEmbed];
@@ -801,15 +1044,19 @@ client.on("interactionCreate", async (interaction) => {
   } catch (error) {
     console.error("❌ Lỗi trong interactionCreate:", error);
     if (interaction.deferred || interaction.replied) {
-      await interaction.followUp({
-        content: "⚠️ Đã xảy ra lỗi khi xử lý thao tác này.",
-        ephemeral: true,
-      }).catch(() => {});
+      await interaction
+        .followUp({
+          content: "⚠️ Đã xảy ra lỗi khi xử lý thao tác này.",
+          ephemeral: true,
+        })
+        .catch(() => {});
     } else {
-      await interaction.reply({
-        content: "⚠️ Đã xảy ra lỗi khi xử lý thao tác này.",
-        ephemeral: true,
-      }).catch(() => {});
+      await interaction
+        .reply({
+          content: "⚠️ Đã xảy ra lỗi khi xử lý thao tác này.",
+          ephemeral: true,
+        })
+        .catch(() => {});
     }
   }
 });
@@ -881,7 +1128,8 @@ server.listen(PORT, "0.0.0.0", () => {
 
 // Khởi chạy bot Discord
 client.login(config.DISCORD_TOKEN).catch((err) => {
-  console.error("❌ Không thể đăng nhập bot. Vui lòng kiểm tra lại DISCORD_TOKEN:", err);
+  console.error(
+    "❌ Không thể đăng nhập bot. Vui lòng kiểm tra lại DISCORD_TOKEN:",
+    err,
+  );
 });
-
-

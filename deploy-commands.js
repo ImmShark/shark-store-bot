@@ -58,6 +58,11 @@ const commands = [
         .setRequired(false),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("setup-server")
+    .setDescription("[Admin] Xem trước và áp dụng bố cục kênh Shark Store.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);

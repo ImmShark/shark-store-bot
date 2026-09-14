@@ -71,7 +71,7 @@ module.exports = {
         fields: [
           {
             name: "<a:4563paymentnitro:1407393939522322645> L1ch0 Bust Trial 4 Tháng:",
-            value: "```PRICE : 110.000 VND```",
+            value: "```PRICE : 130.000 VND```",
             inline: false,
           },
 
@@ -158,12 +158,12 @@ module.exports = {
         fields: [
           {
             name: "<:21366galaxystore:1512143059243241552> 14x Boost Server Lv3 4 Tháng:",
-            value: "```PRICE: 550.000 VNĐ (BH 3 THÁNG)```",
+            value: "```PRICE: 650.000 VNĐ (BH 3 THÁNG)```",
             inline: false,
           },
           {
             name: "<:21366galaxystore:1512143059243241552> 28x Boost Server Lv3 4 Tháng:",
-            value: "```PRICE: 900.000 VNĐ (BH 3 THÁNG)```",
+            value: "```PRICE: 950.000 VNĐ (BH 3 THÁNG)```",
             inline: false,
           },
           {
@@ -513,8 +513,9 @@ module.exports = {
       title: "𝙻𝚎𝚐𝚒𝚝 𝙲𝚑𝚞𝚊̂̉𝚗 𝙽𝚑𝚊̂́𝚝",
 
       description: function (userMessage, orderCount) {
-        const productName =
-          userMessage.replace(/^\+\s*(1\s*)?legit\s*/i, "").trim();
+        const productName = userMessage
+          .replace(/^\+\s*(1\s*)?legit\s*/i, "")
+          .trim();
         const productDisplay = productName ? `: \`${productName}\`` : "";
         const orderText = orderCount
           ? `\n> 🏆 **Đơn hàng uy tín thứ #${orderCount}** của Shark Store!`

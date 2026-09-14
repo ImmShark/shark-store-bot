@@ -24,8 +24,7 @@ module.exports = {
   async execute(interaction) {
     const amount = interaction.options?.getInteger("sotien") || null;
     const memo =
-      interaction.options?.getString("noidung") ||
-      config.BANK_INFO.defaultMemo;
+      interaction.options?.getString("noidung") || config.BANK_INFO.defaultMemo;
 
     const qrImageUrl = generateVietQR({
       amount: amount,
@@ -37,7 +36,9 @@ module.exports = {
       : "Tuỳ chọn theo đơn hàng";
 
     const embed = new EmbedBuilder()
-      .setTitle("<a:294064purplepaw:1515288184223825942> THÔNG TIN CHUYỂN KHOẢN")
+      .setTitle(
+        "<a:294064purplepaw:1515288184223825942> THÔNG TIN CHUYỂN KHOẢN",
+      )
       .setColor("#008cff")
       .setThumbnail(config.BANK_INFO.logoUrl)
       .setDescription(
