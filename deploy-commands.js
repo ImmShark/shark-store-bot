@@ -152,6 +152,24 @@ const commands = [
       option.setName("ping_everyone").setDescription("Tag @everyone (mặc định: không)"),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("thongbao-banggia")
+    .setDescription("[Admin] Gửi thông báo bảng giá dịch vụ Tạo Bot Discord mới.")
+    .addChannelOption((option) =>
+      option
+        .setName("channel")
+        .setDescription("Chọn kênh muốn gửi thông báo (mặc định: kênh hiện tại)")
+        .setRequired(false)
+        .addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement),
+    )
+    .addRoleOption((option) =>
+      option
+        .setName("ping")
+        .setDescription("Role muốn tag khi thông báo (ví dụ @everyone hoặc @Khách Hàng)")
+        .setRequired(false),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ];
 
 const rest = new REST({ version: "10" }).setToken(config.DISCORD_TOKEN);

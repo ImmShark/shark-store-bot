@@ -837,6 +837,119 @@ client.on("interactionCreate", async (interaction) => {
           console.error(`Không thể gửi tin nhắn mẫu vào ${channel.name}:`, err);
         }
       }
+
+      // Lệnh thông báo bảng giá Tạo Bot Discord mới (Admin / Owner)
+      if (commandName === "thongbao-banggia") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({
+            content: "❌ Bạn không có quyền sử dụng lệnh này.",
+            ephemeral: true,
+          });
+        }
+
+        const targetChannel =
+          interaction.options.getChannel("channel") ||
+          interaction.guild.channels.cache.find(
+            (c) => c.name.includes("thông-báo") || c.name.includes("thong-bao"),
+          ) ||
+          interaction.channel;
+
+        const pingRole = interaction.options.getRole("ping");
+
+        const announceEmbed = new EmbedBuilder()
+          .setTitle("🤖 CHÍNH THỨC RA MẮT: DỊCH VỤ TẠO & CHO THUÊ BOT DISCORD CHUYÊN NGHIỆP")
+          .setColor("#00FF99")
+          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setDescription(
+            `
+<a:kingscrown:1116681967505784862> **Chào mừng toàn thể quý khách hàng đến với Shark Store!**
+
+Nhằm hỗ trợ các shop quản lý server, bán hàng tự động và xây dựng cộng đồng uy tín, **Shark Store** trân trọng ra mắt dịch vụ **LÀM & CHO THUÊ BOT DISCORD** chuẩn 5 sao với chi phí cực kỳ tối ưu!
+`,
+          )
+          .addFields(
+            {
+              name: "════════ 👑 GÓI SETUP TRỌN GÓI (VĨNH VIỄN) ════════",
+              value: "*(Mua 1 lần sở hữu bot hoàn chỉnh vĩnh viễn, kèm hỗ trợ tận tâm)*",
+              inline: false,
+            },
+            {
+              name: "🔰 GÓI STARTER — 200.000đ",
+              value:
+                "```• Cài bot trực tiếp vào server sẵn có của khách\n• Bảng giá tương tác + Ticket + VietQR cơ bản\n• Hỗ trợ setup hoàn thiện 1 lần```",
+              inline: false,
+            },
+            {
+              name: "⭐ GÓI STANDARD — 500.000đ  [KHUYÊN DÙNG]",
+              value:
+                "```• Bao gồm tất cả tính năng gói Starter\n• + Hệ thống Legit / Review tự động đếm đơn uy tín\n• + Log lưu trữ đơn hàng & ticket an toàn\n• + Tùy chỉnh màu sắc, logo & tên shop độc quyền\n• + Hỗ trợ kỹ thuật & bảo hành 30 ngày```",
+              inline: false,
+            },
+            {
+              name: "💎 GÓI PREMIUM — 1.000.000đ  [FULL OPTION]",
+              value:
+                "```• Bao gồm tất cả tính năng gói Standard\n• + Dashboard Web quản lý bot trực quan\n• + Thống kê doanh thu & báo cáo tự động\n• + Custom branding nhận diện thương hiệu 100%\n• + Hỗ trợ kỹ thuật & đồng hành 3 tháng```",
+              inline: false,
+            },
+            {
+              name: "════════ 🔄 GÓI THUÊ BOT THEO THÁNG ════════",
+              value: "*(Giải pháp chạy 24/24 trên Cloud, không cần treo máy tính cá nhân)*",
+              inline: false,
+            },
+            {
+              name: "🔰 GÓI BASIC — 99.000đ / tháng",
+              value:
+                "```• Hoạt động trên 1 server\n• Bảng giá tương tác + Ticket + VietQR tự động```",
+              inline: false,
+            },
+            {
+              name: "⭐ GÓI PRO — 199.000đ / tháng",
+              value:
+                "```• Bao gồm tất cả tính năng Basic\n• + Legit tự động + Log đơn + Thống kê shop```",
+              inline: false,
+            },
+            {
+              name: "💎 GÓI VIP — 399.000đ / tháng",
+              value:
+                "```• Bao gồm tất cả tính năng Pro\n• + Dashboard Web quản trị\n• + Hỗ trợ kỹ thuật ưu tiên 24/7```",
+              inline: false,
+            },
+          )
+          .setImage(
+            "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283",
+          )
+          .setFooter({
+            text: "Shark Store • Tự động hóa - Uy tín - Bảo hành dài hạn",
+            iconURL: config.BANK_INFO.logoUrl,
+          })
+          .setTimestamp();
+
+        const actionRow = new ActionRowBuilder().addComponents(
+          new ButtonBuilder()
+            .setCustomId("buy_ticket")
+            .setLabel("Đặt Làm Bot Ngay")
+            .setEmoji("🤖")
+            .setStyle(ButtonStyle.Success),
+          new ButtonBuilder()
+            .setCustomId("support_ticket")
+            .setLabel("Tư Vấn Miễn Phí")
+            .setEmoji("💬")
+            .setStyle(ButtonStyle.Secondary),
+        );
+
+        const content = pingRole ? `${pingRole}` : null;
+
+        await targetChannel.send({
+          content: content,
+          embeds: [announceEmbed],
+          components: [actionRow],
+        });
+
+        return await interaction.reply({
+          content: `✅ Đã gửi bảng thông báo dịch vụ Tạo Bot Discord vào kênh ${targetChannel}!`,
+          ephemeral: true,
+        });
+      }
     }
 
     // 2. Xử lý Nút Bấm (Button)

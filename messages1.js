@@ -489,6 +489,65 @@ module.exports = {
         ],
       },
     },
+    {
+      id: "bot_discord",
+      label: "Tạo Bot Discord",
+      description: "Dịch vụ thiết kế & cho thuê Bot Discord Shop tự động.",
+      emoji: "🤖",
+      embed: {
+        title: "🤖 BẢNG GIÁ DỊCH VỤ TẠO BOT DISCORD • SHARK STORE",
+        color: 0x00ff99,
+        imageUrl:
+          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283",
+        fields: [
+          {
+            name: "══════ 👑 GÓI SETUP TRỌN GÓI (VĨNH VIỄN) ══════",
+            value: "Dành cho khách hàng muốn sở hữu bot hoàn chỉnh:",
+            inline: false,
+          },
+          {
+            name: "🔰 STARTER — 200.000đ",
+            value: "```• Cài bot vào server sẵn có của khách\n• Bảng giá + Ticket + VietQR cơ bản\n• Hỗ trợ setup 1 lần```",
+            inline: false,
+          },
+          {
+            name: "⭐ STANDARD — 500.000đ",
+            value: "```• Tất cả quyền lợi của Starter\n• + Hệ thống Legit / Review tự động\n• + Log đơn hàng chi tiết\n• + Tuỳ chỉnh màu sắc & tên shop\n• + Hỗ trợ kỹ thuật 30 ngày```",
+            inline: false,
+          },
+          {
+            name: "💎 PREMIUM — 1.000.000đ",
+            value: "```• Tất cả quyền lợi của Standard\n• + Dashboard Web quản lý bot\n• + Thống kê doanh thu tự động\n• + Custom branding nhận diện độc quyền\n• + Hỗ trợ kỹ thuật 3 tháng```",
+            inline: false,
+          },
+          {
+            name: "══════ 🔄 GÓI THUÊ BOT THEO THÁNG ══════",
+            value: "Dành cho shop muốn bot chạy 24/24 chi phí siêu tiết kiệm:",
+            inline: false,
+          },
+          {
+            name: "🔰 BASIC — 99.000đ / tháng",
+            value: "```• Hoạt động trên 1 server\n• Bảng giá tương tác + Ticket + VietQR```",
+            inline: false,
+          },
+          {
+            name: "⭐ PRO — 199.000đ / tháng",
+            value: "```• Tất cả quyền lợi của Basic\n• + Hệ thống Legit tự động + Log + Thống kê đơn```",
+            inline: false,
+          },
+          {
+            name: "💎 VIP — 399.000đ / tháng",
+            value: "```• Tất cả quyền lợi của Pro\n• + Dashboard Web quản lý\n• + Hỗ trợ kỹ thuật ưu tiên 24/7```",
+            inline: false,
+          },
+          {
+            name: "> 📌 Đặt Làm Bot Ngay",
+            value: "> Bấm Vào Đây https://discord.com/channels/1013847341649887232/1242745256819167273 Để Tạo Đơn.",
+            inline: false,
+          },
+        ],
+      },
+    },
   ],
   setupLegit: {
     success: (channel) =>
