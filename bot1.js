@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
 const fs = require("fs");
 const {
   Client,
@@ -13,12 +13,15 @@ const {
   TextInputStyle,
   ChannelType,
   PermissionFlagsBits,
+  AttachmentBuilder,
 } = require("discord.js");
 
 const config = require("./config.js");
 const messages = require("./messages1.js");
 const qrCommand = require("./qr.js");
 const { generateVietQR } = require("./vietqr.js");
+const branding = require("./branding.js");
+const { commands } = require("./commands.js");
 
 // Khởi tạo Client Discord
 const client = new Client({
@@ -26,6 +29,9 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    // Bắt buộc để bot nhận sự kiện thành viên mới (welcome).
+    // Phải bật "SERVER MEMBERS INTENT" trong Discord Developer Portal, xem CAP-NHAT.md.
+    GatewayIntentBits.GuildMembers,
   ],
 });
 
@@ -64,13 +70,95 @@ function saveSettings() {
   }
 }
 
+// Ghi file cài đặt diễn ra nhiều lần trong một lượt chạy (ví dụ cập nhật
+// lastActivityAt mỗi tin nhắn trong ticket), nên ghép các lần ghi lại thành
+// một lần sau 15 giây để đỡ tốn I/O. Mọi thay đổi quan trọng vẫn dùng
+// saveSettings() ghi ngay lập tức.
+let saveScheduled = false;
+function saveSettingsSoon() {
+  if (saveScheduled) return;
+  saveScheduled = true;
+  const timer = setTimeout(() => {
+    saveScheduled = false;
+    saveSettings();
+  }, 15 * 1000);
+  timer.unref?.();
+}
+
+process.on("exit", () => {
+  if (saveScheduled) saveSettings();
+});
+
 function getGuildTicketStore(guildId) {
   if (!guildSettings[guildId]) guildSettings[guildId] = {};
   if (!guildSettings[guildId].tickets) guildSettings[guildId].tickets = {};
   return guildSettings[guildId].tickets;
 }
 
+// Lưu nội dung ticket thành file .txt gửi vào kênh log (nếu đã setup).
+async function sendTicketTranscript(channel, ticket, reason) {
+  try {
+    const guildId = channel.guild?.id;
+    const logChannelId = guildSettings[guildId]?.transcriptChannelId;
+    if (!logChannelId) return;
+
+    const logChannel =
+      client.channels.cache.get(logChannelId) ||
+      (await client.channels.fetch(logChannelId).catch(() => null));
+    if (!logChannel?.isTextBased()) return;
+
+    const fetched = await channel.messages.fetch({ limit: 100 }).catch(() => null);
+    if (!fetched) return;
+
+    const lines = [...fetched.values()]
+      .reverse()
+      .map(
+        (msg) =>
+          `[${msg.createdAt.toLocaleString("vi-VN")}] ${msg.author.tag}: ${msg.content}` +
+          (msg.attachments.size
+            ? `\n    📎 ${[...msg.attachments.values()].map((a) => a.url).join(" | ")}`
+            : ""),
+      );
+
+    const content = [
+      `TICKET: #${ticket?.ticketCode || channel.name}`,
+      `Loại: ${ticket?.type === "support" ? "Hỗ Trợ" : ticket?.type === "buy" ? "Mua Hàng" : "Không rõ"}`,
+      `Khách hàng ID: ${ticket?.userId || "Không rõ"}`,
+      `Tạo lúc: ${ticket?.createdAt ? new Date(ticket.createdAt).toLocaleString("vi-VN") : "Không rõ"}`,
+      `Đóng vì: ${reason}`,
+      `Số tin nhắn đã lưu: ${lines.length}`,
+      "─".repeat(50),
+      ...lines,
+    ].join("\n");
+
+    const fileName = `ticket-${ticket?.ticketCode || channel.id}.txt`;
+    const file = new AttachmentBuilder(Buffer.from(content, "utf8"), {
+      name: fileName,
+    });
+
+    const embed = new EmbedBuilder()
+      .setColor("#ed4245")
+      .setTitle("🎫 TICKET ĐÃ ĐÓNG — LƯU TRỮ LẠI")
+      .setThumbnail(branding.logo)
+      .addFields(
+        { name: "Mã Ticket", value: `\`${ticket?.ticketCode || "N/A"}\``, inline: true },
+        { name: "Loại", value: ticket?.type === "buy" ? "Mua Hàng" : "Hỗ Trợ", inline: true },
+        { name: "Lý do đóng", value: reason.slice(0, 1024) || "N/A" },
+      )
+      .setTimestamp();
+
+    await logChannel.send({
+      embeds: [embed],
+      files: [...branding.collectFiles("logo"), file],
+    });
+  } catch (error) {
+    console.error("❌ Lỗi khi tạo transcript ticket:", error);
+  }
+}
+
 async function closeTicket(channel, guildId, reason) {
+  const ticket = guildSettings[guildId]?.tickets?.[channel.id];
+  await sendTicketTranscript(channel, ticket, reason);
   await channel.delete(reason);
   if (guildSettings[guildId]?.tickets) {
     delete guildSettings[guildId].tickets[channel.id];
@@ -246,6 +334,10 @@ async function applyServerLayout(guild) {
   return { completed, problems };
 }
 
+// Quản lý trạng thái chống xử lý trùng lặp (Idempotency & Debounce)
+const processedLegitMessageIds = new Set();
+const lastPriceListSent = new Map(); // key -> timestamp
+
 // Kiểm tra và phục hồi trạng thái legit khi bot khởi động lại
 async function checkAndRestoreLegitState() {
   for (const guildId in guildSettings) {
@@ -265,6 +357,14 @@ async function checkAndRestoreLegitState() {
 
       const lastMessage = messagesInChannel.first();
       if (!lastMessage || lastMessage.author.bot) continue;
+
+      // Chống xử lý trùng lặp nếu tin nhắn này đã được đếm/trả lời
+      if (
+        settings.lastProcessedLegitMsgId === lastMessage.id ||
+        processedLegitMessageIds.has(lastMessage.id)
+      ) {
+        continue;
+      }
 
       const matchedPrefix = messages.legitCheck.triggerPrefix.find((prefix) =>
         lastMessage.content.toLowerCase().startsWith(prefix.toLowerCase()),
@@ -295,12 +395,31 @@ async function checkAndRestoreLegitState() {
 
 // Hàm gửi Bảng Giá chung
 async function sendPriceList(interactionOrMessage) {
+  const channelId =
+    interactionOrMessage.channelId || interactionOrMessage.channel?.id;
+  if (channelId) {
+    const now = Date.now();
+    const lastSent = lastPriceListSent.get(`banggia_${channelId}`) || 0;
+    if (now - lastSent < 3000) {
+      if (interactionOrMessage.isChatInputCommand?.()) {
+        return await interactionOrMessage
+          .reply({
+            content: "⏳ Bảng giá vừa được gửi trong kênh này rồi nhé!",
+            ephemeral: true,
+          })
+          .catch(() => {});
+      }
+      return;
+    }
+    lastPriceListSent.set(`banggia_${channelId}`, now);
+  }
+
   const mainData = messages.mainPriceList;
   const mainEmbed = new EmbedBuilder()
     .setTitle(mainData.title)
     .setDescription(mainData.description)
     .setColor(mainData.color)
-    .setThumbnail(mainData.thumbnailUrl || config.BANK_INFO.logoUrl)
+    .setThumbnail(branding.logo)
     .setImage(mainData.imageUrl)
     .setFooter({
       text: mainData.footer.text,
@@ -321,16 +440,16 @@ async function sendPriceList(interactionOrMessage) {
 
   const row = new ActionRowBuilder().addComponents(selectMenu);
 
+  const payload = {
+    embeds: [mainEmbed],
+    components: [row],
+    files: branding.collectFiles("logo", "banner"),
+  };
+
   if (interactionOrMessage.isChatInputCommand?.()) {
-    await interactionOrMessage.reply({
-      embeds: [mainEmbed],
-      components: [row],
-    });
+    await interactionOrMessage.reply(payload);
   } else {
-    await interactionOrMessage.channel.send({
-      embeds: [mainEmbed],
-      components: [row],
-    });
+    await interactionOrMessage.channel.send(payload);
   }
 }
 
@@ -346,14 +465,32 @@ function getPriceFields(guildId, category) {
 
 // Xử lý tin nhắn legit
 async function handleLegitMessage(message) {
+  if (!message || !message.id) return;
+
+  // 1. Chống xử lý trùng lặp theo ID tin nhắn (Debounce in-memory)
+  if (processedLegitMessageIds.has(message.id)) {
+    return;
+  }
+  processedLegitMessageIds.add(message.id);
+  if (processedLegitMessageIds.size > 200) {
+    const firstId = processedLegitMessageIds.values().next().value;
+    processedLegitMessageIds.delete(firstId);
+  }
+
   const guildId = message.guild.id;
   if (!guildSettings[guildId]) {
     guildSettings[guildId] = { legitChannelId: message.channel.id };
   }
   const settings = guildSettings[guildId];
 
+  // Nếu tin nhắn này đã được xử lý lưu vào settings, bỏ qua
+  if (settings.lastProcessedLegitMsgId === message.id) {
+    return;
+  }
+  settings.lastProcessedLegitMsgId = message.id;
+
   try {
-    // 1. Xóa embed legit cũ để kênh luôn sạch sẽ
+    // 2. Xóa embed legit cũ để kênh luôn sạch sẽ
     if (settings.lastLegitEmbedId) {
       const oldMessage = await message.channel.messages
         .fetch(settings.lastLegitEmbedId)
@@ -363,15 +500,15 @@ async function handleLegitMessage(message) {
       }
     }
 
-    // 2. Thả từng reaction emoji riêng rẽ
+    // 3. Thả từng reaction emoji riêng rẽ
     for (const reaction of messages.legitCheck.reactions) {
       await message.react(reaction).catch(() => {});
     }
 
-    // 3. Tăng bộ đếm đơn hàng legit
+    // 4. Tăng bộ đếm đơn hàng legit
     settings.legitCount = (settings.legitCount || 0) + 1;
 
-    // 4. Tạo embed cảm ơn với tên sản phẩm thực tế và số thứ tự đơn
+    // 5. Tạo embed cảm ơn với tên sản phẩm thực tế và số thứ tự đơn
     const embedData = messages.legitCheck.embed;
     const embed = new EmbedBuilder()
       .setTitle(embedData.title)
@@ -380,10 +517,13 @@ async function handleLegitMessage(message) {
       )
       .setColor(embedData.color)
       .setImage(embedData.gifUrl)
-      .setThumbnail(config.BANK_INFO.logoUrl)
+      .setThumbnail(branding.logo)
       .setTimestamp();
 
-    const newEmbedMessage = await message.channel.send({ embeds: [embed] });
+    const newEmbedMessage = await message.channel.send({
+      embeds: [embed],
+      files: branding.collectFiles("logo", "legit"),
+    });
 
     settings.lastLegitEmbedId = newEmbedMessage.id;
     saveSettings();
@@ -392,10 +532,61 @@ async function handleLegitMessage(message) {
   }
 }
 
+// ─── Welcome cư dân mới (thay thế bot welcome riêng) ───────────────────────
+
+const DEFAULT_WELCOME_MESSAGE =
+  "Chào mừng {user} đã đến với **{server}**! 🎉\n" +
+  "Bạn chính thức là cư dân thứ **{memberCount}** của chúng mình.\n\n" +
+  "> 🛒 Xem **Bảng Giá**: dùng lệnh `/banggia`\n" +
+  "> 🎫 Mua hàng / cần hỗ trợ: tạo **Ticket** tại kênh Ticket-Mua-Hàng\n" +
+  "> 💬 Đừng ngại chào hỏi mọi người để được giúp đỡ nhanh nhất nhé!";
+
+function formatWelcomeMessage(template, member) {
+  return String(template)
+    .replaceAll("{user}", `${member.user}`)
+    .replaceAll("{username}", member.user.username)
+    .replaceAll("{server}", member.guild.name)
+    .replaceAll("{memberCount}", String(member.guild.memberCount));
+}
+
+function buildWelcomePayload(member, welcome) {
+  const embed = new EmbedBuilder()
+    .setColor("#ff6fae")
+    .setTitle("🎉 CƯ DÂN MỚI ĐÃ XUẤT HIỆN!")
+    .setDescription(
+      formatWelcomeMessage(welcome?.message || DEFAULT_WELCOME_MESSAGE, member),
+    )
+    .setThumbnail(member.user.displayAvatarURL({ size: 256 }))
+    .setFooter({
+      text: `${member.guild.name} • Cư dân thứ ${member.guild.memberCount}`,
+      iconURL: branding.logo,
+    })
+    .setTimestamp();
+  return {
+    content: `${member.user}`,
+    embeds: [embed],
+    files: branding.collectFiles("logo"),
+  };
+}
+
 // Khi bot sẵn sàng
 client.once("ready", async () => {
   loadSettings();
   console.log(`🚀 Bot đã online thành công: ${client.user.tag}`);
+
+  // Tự đồng bộ slash command cho MỌI server bot đang ở — từ giờ muốn đổi tên,
+  // thêm hay bớt lệnh chỉ cần restart bot, không cần chạy "npm run deploy".
+  for (const guild of client.guilds.cache.values()) {
+    await client.application.commands
+      .set(commands, guild.id)
+      .then(() =>
+        console.log(`✅ Đã đồng bộ ${commands.length} slash command cho server ${guild.name}`),
+      )
+      .catch((err) =>
+        console.error(`❌ Đồng bộ slash command thất bại ở ${guild.name}:`, err),
+      );
+  }
+
   await checkAndRestoreLegitState();
   await closeInactiveTickets();
   setInterval(closeInactiveTickets, 60 * 60 * 1000).unref();
@@ -466,31 +657,15 @@ client.on("interactionCreate", async (interaction) => {
         });
       }
 
-      if (commandName === "set-price") {
+      // Lệnh sửa giá trực tiếp (Admin / Owner) — thay cho set-price cũ.
+      // Chọn nhóm → chọn sản phẩm → nhập giá, không cần nhớ mã hay số dòng.
+      if (commandName === "setgia") {
         if (!isAdmin && !isOwner) {
           return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
         }
-        const categoryId = interaction.options.getString("category");
-        const item = interaction.options.getInteger("item");
-        const price = interaction.options.getString("price");
-        const category = messages.priceCategories.find((entry) => entry.id === categoryId);
-        if (!category || !category.embed.fields[item - 1]) {
-          const ids = messages.priceCategories.map((entry) => `\`${entry.id}\``).join(", ");
-          return await interaction.reply({
-            content: `❌ Category hoặc dòng giá không hợp lệ. Category có thể dùng: ${ids}`,
-            ephemeral: true,
-          });
-        }
-        if (!guildSettings[interaction.guild.id]) guildSettings[interaction.guild.id] = {};
-        const settings = guildSettings[interaction.guild.id];
-        if (!settings.priceOverrides) settings.priceOverrides = {};
-        if (!settings.priceOverrides[categoryId]) settings.priceOverrides[categoryId] = {};
-        settings.priceOverrides[categoryId][item] = price;
-        saveSettings();
-        return await interaction.reply({
-          content: `✅ Đã đổi giá dòng **${item}** của **${category.label}** thành **${price}**.`,
-          ephemeral: true,
-        });
+        return await interaction.reply(
+          buildSetgiaCategoryMenu(interaction.user.id),
+        );
       }
 
       if (commandName === "announce") {
@@ -525,7 +700,7 @@ client.on("interactionCreate", async (interaction) => {
           .setColor(color)
           .setTitle(title)
           .setDescription(content)
-          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setThumbnail(branding.logo)
           .setFooter({ text: `Shark Store • Thông báo bởi ${interaction.user.username}` })
           .setTimestamp();
         if (imageUrl) embed.setImage(imageUrl);
@@ -572,7 +747,7 @@ client.on("interactionCreate", async (interaction) => {
           .setColor(data.color)
           .setTitle(data.title)
           .setDescription(data.description)
-          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setThumbnail(branding.logo)
           .setFooter({ text: "Shark Store • Cảm ơn bạn đã ủng hộ" })
           .setTimestamp();
         await channel.send({
@@ -582,6 +757,76 @@ client.on("interactionCreate", async (interaction) => {
         });
         return await interaction.reply({
           content: `✅ Đã gửi mẫu **${template}** vào ${channel}${pingEveryone ? " và tag @everyone" : ""}.`,
+          ephemeral: true,
+        });
+      }
+
+      // Lệnh cài đặt Welcome cư dân mới (Admin / Owner)
+      if (commandName === "setup-welcome") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
+        }
+
+        const guildId = interaction.guild.id;
+        if (!guildSettings[guildId]) guildSettings[guildId] = {};
+        const settings = guildSettings[guildId];
+
+        if (interaction.options.getBoolean("tat")) {
+          delete settings.welcome;
+          saveSettings();
+          return await interaction.reply({
+            content: "✅ Đã TẮT welcome cư dân mới. Bot sẽ không gửi tin chào mừng nữa.",
+            ephemeral: true,
+          });
+        }
+
+        const channel = interaction.options.getChannel("channel");
+        if (!channel?.isTextBased()) {
+          return await interaction.reply({ content: "❌ Kênh này không thể gửi welcome.", ephemeral: true });
+        }
+
+        settings.welcome = {
+          channelId: channel.id,
+          message: interaction.options.getString("loi_chao") || null,
+          roleId: interaction.options.getRole("role")?.id || null,
+        };
+        saveSettings();
+
+        // Gửi tin nhắn mẫu luôn, dùng chính người setup làm "cư dân mới"
+        try {
+          await channel.send(buildWelcomePayload(interaction.member, settings.welcome));
+        } catch (err) {
+          console.error("Không thể gửi welcome mẫu:", err);
+        }
+
+        const role = settings.welcome.roleId
+          ? interaction.guild.roles.cache.get(settings.welcome.roleId)
+          : null;
+        return await interaction.reply({
+          content:
+            `✅ Đã bật **Welcome cư dân mới**!\n` +
+            `• Kênh chào mừng: ${channel}\n` +
+            (role ? `• Auto-role khi vào server: ${role}\n` : "") +
+            (settings.welcome.message ? `• Lời chào tùy chỉnh: đã lưu\n` : "• Dùng lời chào mặc định của bot\n") +
+            `\n💡 Trong lời chào có thể dùng: \`{user}\` (tag), \`{username}\`, \`{server}\`, \`{memberCount}\`.`,
+          ephemeral: true,
+        });
+      }
+
+      // Lệnh cài đặt kênh lưu transcript ticket (Admin / Owner)
+      if (commandName === "setup-log") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
+        }
+        const channel = interaction.options.getChannel("channel");
+        if (!channel?.isTextBased()) {
+          return await interaction.reply({ content: "❌ Kênh này không thể nhận log.", ephemeral: true });
+        }
+        if (!guildSettings[interaction.guild.id]) guildSettings[interaction.guild.id] = {};
+        guildSettings[interaction.guild.id].transcriptChannelId = channel.id;
+        saveSettings();
+        return await interaction.reply({
+          content: `✅ Đã đặt ${channel} làm kênh lưu transcript. Mỗi ticket khi đóng/xoá sẽ được lưu lại thành file .txt tại đây.`,
           ephemeral: true,
         });
       }
@@ -714,7 +959,7 @@ client.on("interactionCreate", async (interaction) => {
         const verifyEmbed = new EmbedBuilder()
           .setColor("#00FF99")
           .setTitle("🛡️ CỔNG XÁC MINH THÀNH VIÊN • SHARK STORE")
-          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setThumbnail(branding.logo)
           .setDescription(
             `
 <a:kingscrown:1116681967505784862> Chào mừng bạn đã đến với **Shark Store**! 🦈
@@ -725,7 +970,7 @@ client.on("interactionCreate", async (interaction) => {
 `,
           )
           .setImage(
-            "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283",
+            branding.banner,
           )
           .setFooter({
             text: "Shark Store • Nhấn nút bên dưới để hoàn tất xác minh",
@@ -742,6 +987,7 @@ client.on("interactionCreate", async (interaction) => {
         await verifyChannel.send({
           embeds: [verifyEmbed],
           components: [verifyRow],
+          files: branding.collectFiles("logo", "banner"),
         });
 
         return await interaction.editReply({
@@ -771,7 +1017,7 @@ client.on("interactionCreate", async (interaction) => {
 `,
           )
           .setImage(
-            "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283",
+            branding.banner,
           );
 
         const row = new ActionRowBuilder().addComponents(
@@ -791,6 +1037,7 @@ client.on("interactionCreate", async (interaction) => {
         return await interaction.reply({
           embeds: [embed],
           components: [row],
+          files: branding.collectFiles("banner"),
         });
       }
 
@@ -830,7 +1077,10 @@ client.on("interactionCreate", async (interaction) => {
             .setColor(embedData.color)
             .setImage(embedData.gifUrl);
 
-          const sentMessage = await channel.send({ embeds: [sampleEmbed] });
+          const sentMessage = await channel.send({
+            embeds: [sampleEmbed],
+            files: branding.collectFiles("legit"),
+          });
           guildSettings[guildId].lastLegitEmbedId = sentMessage.id;
           saveSettings();
         } catch (err) {
@@ -854,12 +1104,22 @@ client.on("interactionCreate", async (interaction) => {
           ) ||
           interaction.channel;
 
+        const now = Date.now();
+        const lastSent = lastPriceListSent.get(`thongbao_${targetChannel.id}`) || 0;
+        if (now - lastSent < 5000) {
+          return await interaction.reply({
+            content: "⏳ Thông báo bảng giá vừa được gửi vào kênh này cách đây vài giây!",
+            ephemeral: true,
+          });
+        }
+        lastPriceListSent.set(`thongbao_${targetChannel.id}`, now);
+
         const pingRole = interaction.options.getRole("ping");
 
         const announceEmbed = new EmbedBuilder()
           .setTitle("🤖 CHÍNH THỨC RA MẮT: DỊCH VỤ TẠO & CHO THUÊ BOT DISCORD CHUYÊN NGHIỆP")
           .setColor("#00FF99")
-          .setThumbnail(config.BANK_INFO.logoUrl)
+          .setThumbnail(branding.logo)
           .setDescription(
             `
 <a:kingscrown:1116681967505784862> **Chào mừng toàn thể quý khách hàng đến với Shark Store!**
@@ -916,11 +1176,11 @@ Nhằm hỗ trợ các shop quản lý server, bán hàng tự động và xây 
             },
           )
           .setImage(
-            "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283",
+            branding.banner,
           )
           .setFooter({
             text: "Shark Store • Tự động hóa - Uy tín - Bảo hành dài hạn",
-            iconURL: config.BANK_INFO.logoUrl,
+            iconURL: branding.logo,
           })
           .setTimestamp();
 
@@ -943,6 +1203,7 @@ Nhằm hỗ trợ các shop quản lý server, bán hàng tự động và xây 
           content: content,
           embeds: [announceEmbed],
           components: [actionRow],
+          files: branding.collectFiles("logo", "banner"),
         });
 
         return await interaction.reply({
@@ -1049,6 +1310,22 @@ Nhằm hỗ trợ các shop quản lý server, bán hàng tự động và xây 
 
       // Nút Xác Nhận Đóng Ticket
       if (customId === "confirm_close_ticket") {
+        const isOwner = interaction.user.id === config.OWNER_ID;
+        const isStaff =
+          interaction.member?.roles?.cache.has(config.STAFF_ROLE_ID) ||
+          interaction.member?.permissions.has(PermissionFlagsBits.Administrator);
+        const ticketRecord =
+          guildSettings[interaction.guild.id]?.tickets?.[interaction.channel.id];
+        const isOpener = ticketRecord && ticketRecord.userId === interaction.user.id;
+
+        // Ticket cũ trước khi có ghi nhận sẽ không có bản ghi, giữ hành vi cũ.
+        if (ticketRecord && !isOpener && !isStaff && !isOwner) {
+          return await interaction.reply({
+            content: "❌ Chỉ khách mở ticket hoặc nhân viên mới có thể đóng ticket!",
+            ephemeral: true,
+          });
+        }
+
         await interaction.reply({
           content: "🔒 Đang đóng ticket…",
         });
@@ -1283,7 +1560,7 @@ Nhằm hỗ trợ các shop quản lý server, bán hàng tự động và xây 
         .setTitle(
           `<a:39411brownbow:1515288160727339028> SHARK STORE - ${isBuy ? "ĐƠN MUA HÀNG" : "YÊU CẦU HỖ TRỢ"}`,
         )
-        .setThumbnail(config.BANK_INFO.logoUrl)
+        .setThumbnail(branding.logo)
         .setDescription(
           `
 ╭───────────────╮
@@ -1327,6 +1604,7 @@ Nhằm hỗ trợ các shop quản lý server, bán hàng tự động và xây 
         content: `${interaction.user} | <@&${config.STAFF_ROLE_ID}>`,
         embeds: embedsToSend,
         components: [ticketActionRow],
+        files: branding.collectFiles("logo"),
       });
 
       return await interaction.reply({
@@ -1356,6 +1634,7 @@ Nhằm hỗ trợ các shop quản lý server, bán hàng tự động và xây 
           return await interaction.reply({
             embeds: [categoryEmbed],
             ephemeral: true,
+            files: branding.collectFiles("banner"),
           });
         }
       }
@@ -1387,7 +1666,7 @@ client.on("messageCreate", async (message) => {
   const ticket = guildSettings[message.guild.id]?.tickets?.[message.channel.id];
   if (ticket) {
     ticket.lastActivityAt = Date.now();
-    saveSettings();
+    saveSettingsSoon();
   }
 
   const settings = guildSettings[message.guild.id];
@@ -1409,6 +1688,7 @@ client.on("messageCreate", async (message) => {
       lowerContent.includes("legit") || lowerContent.includes("legi");
 
     if (isCorrectFormat) {
+      if (processedLegitMessageIds.has(message.id)) return;
       await handleLegitMessage(message);
     } else if (isAttempt) {
       try {
@@ -1438,11 +1718,70 @@ client.on("messageCreate", async (message) => {
   }
 });
 
+// Chào mừng cư dân mới + auto-role (thay thế bot welcome riêng)
+client.on("guildMemberAdd", async (member) => {
+  try {
+    const settings = guildSettings[member.guild.id] || {};
+    const welcome = settings.welcome;
+
+    // Cấp role tự động khi vào server (nếu đã cài trong /setup-welcome)
+    if (welcome?.roleId) {
+      const role = member.guild.roles.cache.get(welcome.roleId);
+      if (role) {
+        await member.roles
+          .add(role, "Tự động cấp role khi tham gia server")
+          .catch((err) =>
+            console.error(`Không thể cấp role welcome cho ${member.user.tag}:`, err),
+          );
+      }
+    }
+
+    // Không chào mừng bot (bot khác vào server)
+    if (member.user.bot || !welcome?.channelId) return;
+
+    const channel =
+      member.guild.channels.cache.get(welcome.channelId) ||
+      (await client.channels.fetch(welcome.channelId).catch(() => null));
+    if (!channel?.isTextBased()) return;
+
+    await channel.send(buildWelcomePayload(member, welcome));
+  } catch (error) {
+    console.error("❌ Lỗi khi chào mừng thành viên mới:", error);
+  }
+});
+
 // Web server mini để Render nhận diện port và kiểm tra sức khỏe (Health check)
 const http = require("http");
 const PORT = process.env.PORT || 10000;
 
+// Lỗi nhỏ ở web server không được phép sập cả bot, nên bọc lại toàn bộ handler.
 const server = http.createServer((req, res) => {
+  try {
+    handleWebRequest(req, res);
+  } catch (error) {
+    console.error("❌ Lỗi web server:", error);
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+    }
+    res.end("Internal Server Error");
+  }
+});
+
+function escapeHtml(text) {
+  return String(text).replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[char],
+  );
+}
+
+function handleWebRequest(req, res) {
   const requestUrl = new URL(req.url, "http://localhost");
   if (requestUrl.pathname === "/dashboard") {
     const dashboardToken = process.env.DASHBOARD_TOKEN;
@@ -1463,7 +1802,19 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
   res.end("🦈 Shark Store Discord Bot is Running 24/7!");
-});
+}
+
+// Không để lỗi bất kỳ đâu (promise, sự kiện Discord) làm bot ngủm im lặng.
+client.on("error", (error) => console.error("❌ [DISCORD] Lỗi client:", error));
+client.on("shardError", (error) =>
+  console.error("❌ [DISCORD] Lỗi kết nối shard:", error),
+);
+process.on("unhandledRejection", (reason) =>
+  console.error("❌ [UNHANDLED REJECTION]:", reason),
+);
+process.on("uncaughtException", (error) =>
+  console.error("❌ [UNCAUGHT EXCEPTION]:", error),
+);
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`🌐 Web server giữ kết nối đang chạy tại 0.0.0.0:${PORT}`);
@@ -1475,4 +1826,12 @@ client.login(config.DISCORD_TOKEN).catch((err) => {
     "❌ Không thể đăng nhập bot. Vui lòng kiểm tra lại DISCORD_TOKEN:",
     err,
   );
+  if (String(err?.message || "").toLowerCase().includes("disallowed intents")) {
+    console.error(
+      "👉 Bạn chưa bật privileged intent trên Discord Developer Portal:\n" +
+        "   1. Vào https://discord.com/developers/applications → chọn app của bot\n" +
+        "   2. Mục Bot → bật 'SERVER MEMBERS INTENT' (cần cho tính năng Welcome)\n" +
+        "   3. Bấm Save Changes rồi chạy lại bot.",
+    );
+  }
 });

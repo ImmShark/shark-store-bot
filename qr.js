@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const config = require("./config.js");
+const branding = require("./branding.js");
 const { generateVietQR } = require("./vietqr.js");
 
 module.exports = {
@@ -40,7 +41,7 @@ module.exports = {
         "<a:294064purplepaw:1515288184223825942> THÔNG TIN CHUYỂN KHOẢN",
       )
       .setColor("#008cff")
-      .setThumbnail(config.BANK_INFO.logoUrl)
+      .setThumbnail(branding.logo)
       .setDescription(
         `
 <a:39411brownbow:1515288160727339028> **Ngân Hàng**
@@ -75,6 +76,9 @@ ${formattedAmount}
       })
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({
+      embeds: [embed],
+      files: branding.collectFiles("logo"),
+    });
   },
 };

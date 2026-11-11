@@ -1,15 +1,15 @@
+const branding = require("./branding.js");
+
 module.exports = {
   mainPriceList: {
     title: "Bảng Giá Shark St0re <:acherryblossombl:1116689608005124096>",
     description:
       "1. Nhấn vào mục bên dưới, chọn mặt hàng bạn cần\n2. Bot Sẽ Hiển Thị Bảng Giá Sản Phẩm\n3. ⁠https://discord.com/channels/1013847341649887232/1242745256819167273 để mua hàng bạn cần\n4. Xem Legit Tại Đây: https://discord.com/channels/1013847341649887232/1116884618218586142",
     color: 0x9b59b6,
-    imageUrl:
-      "https://media.discordapp.net/attachments/1160008472893603871/1511654058900066416/standard_3.gif?ex=6a228e8c&is=6a213d0c&hm=f78a03aa25960b824ef4164de6e26bead94e3353ed28cc11b791351243a64f85&=&width=585&height=75",
+    imageUrl: branding.banner,
     footer: {
       text: "© Software Development By Shark.",
-      iconURL:
-        "https://media.discordapp.net/attachments/1160008472893603871/1512106856594669679/logo.gif?ex=6a22e2c0&is=6a219140&hm=90a303963a59435e6f282f02f5803bd4042e209b3d820e4c8acc4d69add9f934&=&width=623&height=533",
+      iconURL: branding.logo,
     },
     selectMenuPlaceholder: "Nhấn Vào Đây Vào Chọn Sản Phẩm Bạn Cần Mua",
   },
@@ -23,8 +23,7 @@ module.exports = {
       embed: {
         title: "💎 Bảng Giá N1tr0 B00st 💎",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         thumbnailUrl:
           "https://media.discordapp.net/attachments/1160008472893603871/1511358992079786034/standard_5.gif?ex=6a22cd3f&is=6a217bbf&hm=93bb4f81fba8fd34588b38992af63ff30c2e0e214af64fa4315013805f3a857f&=&width=320&height=320",
         fields: [
@@ -66,8 +65,7 @@ module.exports = {
       embed: {
         title: "Bảng giá N1tr0 Trial",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<a:4563paymentnitro:1407393939522322645> L1ch0 Bust Trial 4 Tháng:",
@@ -92,8 +90,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá Khung Dec0r & Hiệu Ứng",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:acherryblossombl:1116689608005124096> ~~66.000 VND~~ → 50.000 VNĐ:",
@@ -153,8 +150,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá B00st Server",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:21366galaxystore:1512143059243241552> 14x Boost Server Lv3 4 Tháng:",
@@ -194,8 +190,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá Sp0tify Premium",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:35773spotify:1407413986340765787> Spotify Premium 1 Năm Indivadual (Cá Nhân):",
@@ -225,8 +220,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá Y0uTube Premium",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:6409youtubegif:1512142884894412870> Youtube Premium 1 Tháng (Family):",
@@ -266,8 +260,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá Netflix Premium",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:9827netflixlogo:1512143036300132382> Netflix Riêng Tư 1 Tháng:",
@@ -312,8 +305,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá Chat GPT",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:44559newchatgptlogoround:1512143360696127770> Chat GPT Plus 1 Tháng (Cá Nhân):",
@@ -363,8 +355,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá GO0gle One",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:3935googlechrome:1512142425920110602> GO0gle One 2Tb 1 Năm:",
@@ -394,8 +385,7 @@ module.exports = {
       embed: {
         title: "Bảng Giá Adobe Creative Cloud",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:70357adobe:1407393960938180688> Adobe Creative Cloud 80Gb 1 Năm (1 Máy):",
@@ -428,10 +418,9 @@ module.exports = {
       description: "Edit Nâng Cao Cùng Capcut.",
       emoji: "<:69836capcut:1407393955762667733>",
       embed: {
-        title: "Bảng Giá Adobe Creative Cloud",
+        title: "Bảng Giá Capcut Pro",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:69836capcut:1407393955762667733> Capcut Pro 6 Tháng (Cá Nhân):",
@@ -459,10 +448,9 @@ module.exports = {
       description: "Chỉnh Sửa Hình Ảnh Nâng Cao Cùng Canva Pro.",
       emoji: "<:41448canva:1407393947898216528>",
       embed: {
-        title: "Bảng Giá Adobe Creative Cloud",
+        title: "Bảng Giá Canva Pro",
         color: 0x9b59b6,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?ex=6a22e6c7&is=6a219547&hm=5ec9b4603fc3df7c33709ce1a70c1ef6f836df1ab7abb74aa2e7b59387bb0f05&=&format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "<:41448canva:1407393947898216528> Canva Pro 1 Năm:",
@@ -497,8 +485,7 @@ module.exports = {
       embed: {
         title: "🤖 BẢNG GIÁ DỊCH VỤ TẠO BOT DISCORD • SHARK STORE",
         color: 0x00ff99,
-        imageUrl:
-          "https://media.discordapp.net/attachments/1160008472893603871/1512111182713065472/endd.png?format=webp&quality=lossless&width=1860&height=283",
+        imageUrl: branding.banner,
         fields: [
           {
             name: "══════ 👑 GÓI SETUP TRỌN GÓI (VĨNH VIỄN) ══════",
@@ -587,8 +574,7 @@ module.exports = {
 `;
       },
       color: 0x57f287,
-      gifUrl:
-        "https://cdn.discordapp.com/attachments/1407102790320263208/1407241308526870620/standard_3.gif",
+      gifUrl: branding.legit,
     },
   },
 };
