@@ -781,34 +781,163 @@ client.on("interactionCreate", async (interaction) => {
         }
 
         const channel = interaction.options.getChannel("channel");
-        if (!channel?.isTextBased()) {
+        const role = interaction.options.getRole("role");
+        const customMsg = interaction.options.getString("loi_chao");
+
+        if (channel && !channel.isTextBased()) {
           return await interaction.reply({ content: "❌ Kênh này không thể gửi welcome.", ephemeral: true });
         }
 
-        settings.welcome = {
-          channelId: channel.id,
-          message: interaction.options.getString("loi_chao") || null,
-          roleId: interaction.options.getRole("role")?.id || null,
-        };
-        saveSettings();
-
-        // Gửi tin nhắn mẫu luôn, dùng chính người setup làm "cư dân mới"
-        try {
-          await channel.send(buildWelcomePayload(interaction.member, settings.welcome));
-        } catch (err) {
-          console.error("Không thể gửi welcome mẫu:", err);
+        if (!channel && !role && !customMsg) {
+          return await interaction.reply({
+            content: "⚠️ Bạn cần chọn ít nhất 1 mục: kênh chào mừng `channel` hoặc role tự cấp `role`.",
+            ephemeral: true,
+          });
         }
 
-        const role = settings.welcome.roleId
-          ? interaction.guild.roles.cache.get(settings.welcome.roleId)
-          : null;
+        if (role) {
+          if (!settings.autoRoleIds) settings.autoRoleIds = [];
+          if (!settings.autoRoleIds.includes(role.id)) settings.autoRoleIds.push(role.id);
+          settings.autoRoleId = role.id;
+        }
+
+        if (!settings.welcome) settings.welcome = {};
+        if (channel) settings.welcome.channelId = channel.id;
+        if (customMsg) settings.welcome.message = customMsg;
+        if (role) settings.welcome.roleId = role.id;
+        saveSettings();
+
+        // Gửi tin nhắn mẫu nếu có kênh
+        if (channel) {
+          try {
+            await channel.send(buildWelcomePayload(interaction.member, settings.welcome));
+          } catch (err) {
+            console.error("Không thể gửi welcome mẫu:", err);
+          }
+        }
+
         return await interaction.reply({
           content:
-            `✅ Đã bật **Welcome cư dân mới**!\n` +
-            `• Kênh chào mừng: ${channel}\n` +
+            `✅ Đã cập nhật **Welcome & Auto-Role**!\n` +
+            (channel ? `• Kênh chào mừng: ${channel}\n` : "• Kênh chào mừng: Chưa chọn (không gửi tin chào)\n") +
             (role ? `• Auto-role khi vào server: ${role}\n` : "") +
-            (settings.welcome.message ? `• Lời chào tùy chỉnh: đã lưu\n` : "• Dùng lời chào mặc định của bot\n") +
+            (settings.welcome?.message ? `• Lời chào tùy chỉnh: đã lưu\n` : "• Dùng lời chào mặc định của bot\n") +
             `\n💡 Trong lời chào có thể dùng: \`{user}\` (tag), \`{username}\`, \`{server}\`, \`{memberCount}\`.`,
+          ephemeral: true,
+        });
+      }
+
+      // Lệnh cài đặt Auto-Role (Admin / Owner)
+      if (commandName === "setup-autorole" || commandName === "autorole") {
+        if (!isAdmin && !isOwner) {
+          return await interaction.reply({ content: "❌ Bạn không có quyền sử dụng lệnh này.", ephemeral: true });
+        }
+
+        const guildId = interaction.guild.id;
+        if (!guildSettings[guildId]) guildSettings[guildId] = {};
+        const settings = guildSettings[guildId];
+
+        // 1. Tắt Auto-Role
+        if (interaction.options.getBoolean?.("tat")) {
+          delete settings.autoRoleIds;
+          delete settings.autoRoleId;
+          saveSettings();
+          return await interaction.reply({
+            content: "✅ Đã **TẮT** tính năng Auto-Role. Người mới tham gia server sẽ không được tự động cấp role nữa.",
+            ephemeral: true,
+          });
+        }
+
+        const mainRole = interaction.options.getRole?.("role");
+        const subRole = interaction.options.getRole?.("role_phu");
+
+        // 2. Nếu không truyền role -> Hiển thị trạng thái hiện tại
+        if (!mainRole && !subRole) {
+          const currentRoleIds = settings.autoRoleIds || (settings.autoRoleId ? [settings.autoRoleId] : []);
+          if (currentRoleIds.length === 0) {
+            return await interaction.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setTitle("⚙️ Cài Đặt Auto-Role (Tự Động Cấp Role)")
+                  .setColor("#00bfff")
+                  .setDescription(
+                    `Hiện tại server **chưa cài đặt** role tự động cho người mới tham gia!\n\n` +
+                    `👉 **Cách cài đặt:**\n` +
+                    `• Dùng lệnh \`/setup-autorole role:@TênRole\` để chọn role cần cấp.\n` +
+                    `• Có thể thêm \`role_phu:@Role2\` nếu muốn cấp cùng lúc 2 role.\n\n` +
+                    `⚠️ **Lưu ý quan trọng:**\n` +
+                    `Vào **Cài đặt máy chủ > Vai trò** và kéo Role của Bot (Shark Store) lên **cao hơn** role bạn muốn cấp thì bot mới có quyền phát role nhé!`
+                  )
+                  .setThumbnail(branding.logo)
+              ],
+              ephemeral: true,
+            });
+          }
+
+          const roleMentions = currentRoleIds
+            .map((id) => interaction.guild.roles.cache.get(id))
+            .filter(Boolean)
+            .map((r) => `${r}`)
+            .join(", ");
+
+          return await interaction.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setTitle("⚙️ Trạng Thái Auto-Role Hiện Tại")
+                .setColor("#00FF99")
+                .setDescription(
+                  `✅ **Auto-Role đang BẬT!**\n\n` +
+                  `• Các role sẽ tự cấp cho người mới: ${roleMentions || "Không tìm thấy role trên server"}\n\n` +
+                  `💡 Dùng \`/setup-autorole role:@RoleMới\` để đổi role, hoặc \`/setup-autorole tat:True\` để tắt.`
+                )
+                .setThumbnail(branding.logo)
+            ],
+            ephemeral: true,
+          });
+        }
+
+        // 3. Cài đặt Role mới
+        const newRoleIds = [];
+        if (mainRole) newRoleIds.push(mainRole.id);
+        if (subRole && subRole.id !== mainRole?.id) newRoleIds.push(subRole.id);
+
+        settings.autoRoleIds = newRoleIds;
+        settings.autoRoleId = mainRole.id;
+        saveSettings();
+
+        // Kiểm tra quyền và thứ tự role của bot
+        const me = interaction.guild.members.me || (await interaction.guild.members.fetchMe().catch(() => null));
+        const hasManageRoles = me?.permissions.has(PermissionFlagsBits.ManageRoles);
+        let warningText = "";
+
+        if (!hasManageRoles) {
+          warningText += `\n\n⚠️ **Cảnh báo:** Bot hiện **thiếu quyền "Quản lý vai trò" (Manage Roles)**! Vui lòng vào Cài đặt máy chủ > Vai trò và cấp quyền cho bot.`;
+        }
+
+        const rolesExceeding = newRoleIds
+          .map((id) => interaction.guild.roles.cache.get(id))
+          .filter(Boolean)
+          .filter((r) => me.roles.highest.comparePositionTo(r) <= 0);
+
+        if (rolesExceeding.length > 0) {
+          warningText += `\n\n⚠️ **Lưu ý quan trọng về thứ bậc vai trò:**\n` +
+            `Role của Bot (**${me.roles.highest.name}**) đang nằm **thấp hơn hoặc ngang bằng** role ${rolesExceeding.map((r) => `\`${r.name}\``).join(", ")}!\n` +
+            `👉 Hãy vào **Cài đặt máy chủ > Vai trò** và **kéo Role của Bot lên trên cùng** (hoặc trên role cần cấp) thì bot mới phát role được nhé!`;
+        }
+
+        const roleDisplay = newRoleIds.map((id) => `<@&${id}>`).join(" + ");
+        return await interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle("✅ Thiết Lập Auto-Role Thành Công!")
+              .setColor("#00FF99")
+              .setDescription(
+                `Kể từ bây giờ, bất kỳ ai vừa tham gia server sẽ được bot tự động cấp role: **${roleDisplay}**! 🎉` +
+                warningText
+              )
+              .setThumbnail(branding.logo)
+              .setTimestamp()
+          ],
           ephemeral: true,
         });
       }
@@ -1718,35 +1847,98 @@ client.on("messageCreate", async (message) => {
   }
 });
 
-// Chào mừng cư dân mới + auto-role (thay thế bot welcome riêng)
+// Chào mừng cư dân mới + Tự động cấp role (Auto-Role)
 client.on("guildMemberAdd", async (member) => {
   try {
-    const settings = guildSettings[member.guild.id] || {};
+    const guild = member.guild;
+    const settings = guildSettings[guild.id] || {};
     const welcome = settings.welcome;
 
-    // Cấp role tự động khi vào server (nếu đã cài trong /setup-welcome)
-    if (welcome?.roleId) {
-      const role = member.guild.roles.cache.get(welcome.roleId);
-      if (role) {
-        await member.roles
-          .add(role, "Tự động cấp role khi tham gia server")
-          .catch((err) =>
-            console.error(`Không thể cấp role welcome cho ${member.user.tag}:`, err),
-          );
+    // 1. Tự động cấp role cho người mới vào server (Auto-Role)
+    const targetRoleIds = [];
+    if (Array.isArray(settings.autoRoleIds) && settings.autoRoleIds.length > 0) {
+      targetRoleIds.push(...settings.autoRoleIds);
+    } else if (settings.autoRoleId) {
+      targetRoleIds.push(settings.autoRoleId);
+    } else if (welcome?.roleId) {
+      targetRoleIds.push(welcome.roleId);
+    }
+
+    // Fallback thông minh: nếu chưa cài đặt bằng lệnh, tự tìm role "Khách Hàng" hoặc "Thành Viên" & "IN4"
+    if (targetRoleIds.length === 0) {
+      const defaultRole = guild.roles.cache.find(
+        (r) =>
+          r.name.toLowerCase() === "khách hàng" ||
+          r.name.toLowerCase() === "khach hang" ||
+          r.name.toLowerCase() === "thành viên" ||
+          r.name.toLowerCase() === "thanh vien",
+      );
+      if (defaultRole) targetRoleIds.push(defaultRole.id);
+
+      const in4Role = guild.roles.cache.find(
+        (r) =>
+          r.name.includes("𝐈𝐍𝟒") ||
+          r.name.toLowerCase().includes("in4"),
+      );
+      if (in4Role && (!defaultRole || in4Role.id !== defaultRole.id)) {
+        targetRoleIds.push(in4Role.id);
       }
     }
 
-    // Không chào mừng bot (bot khác vào server)
+    if (targetRoleIds.length > 0) {
+      try {
+        const me =
+          guild.members.me ||
+          (await guild.members.fetchMe().catch(() => null));
+
+        if (!me?.permissions.has(PermissionFlagsBits.ManageRoles)) {
+          console.warn(
+            `⚠️ [AUTO-ROLE] Bot thiếu quyền ManageRoles (Quản lý vai trò) trên server ${guild.name}`,
+          );
+        } else {
+          const rolesToApply = [];
+          for (const roleId of targetRoleIds) {
+            const role =
+              guild.roles.cache.get(roleId) ||
+              (await guild.roles.fetch(roleId).catch(() => null));
+            if (!role) continue;
+
+            // Kiểm tra thứ bậc role (role cao nhất của Bot phải đứng trên role muốn cấp)
+            if (me.roles.highest.comparePositionTo(role) <= 0) {
+              console.warn(
+                `⚠️ [AUTO-ROLE] Không thể cấp "${role.name}": Role cao nhất của Bot (${me.roles.highest.name}) thấp hơn hoặc ngang bằng "${role.name}". Cần kéo role Bot lên trên trong Server Settings > Roles!`,
+              );
+              continue;
+            }
+            rolesToApply.push(role);
+          }
+
+          if (rolesToApply.length > 0) {
+            await member.roles.add(
+              rolesToApply,
+              "Auto-Role: Tự động cấp role cho người chơi/thành viên mới tham gia",
+            );
+            console.log(
+              `✅ [AUTO-ROLE] Đã tự động cấp [${rolesToApply.map((r) => r.name).join(", ")}] cho người mới: ${member.user.tag}`,
+            );
+          }
+        }
+      } catch (err) {
+        console.error(`❌ [AUTO-ROLE] Lỗi khi cấp role cho ${member.user.tag}:`, err);
+      }
+    }
+
+    // 2. Không chào mừng bot (bot khác vào server)
     if (member.user.bot || !welcome?.channelId) return;
 
     const channel =
-      member.guild.channels.cache.get(welcome.channelId) ||
+      guild.channels.cache.get(welcome.channelId) ||
       (await client.channels.fetch(welcome.channelId).catch(() => null));
     if (!channel?.isTextBased()) return;
 
     await channel.send(buildWelcomePayload(member, welcome));
   } catch (error) {
-    console.error("❌ Lỗi khi chào mừng thành viên mới:", error);
+    console.error("❌ Lỗi khi chào mừng / auto-role thành viên mới:", error);
   }
 });
 

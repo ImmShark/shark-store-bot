@@ -204,6 +204,32 @@ const commands = [
         .addChannelTypes(ChannelType.GuildText),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("setup-autorole")
+    .setDescription("[Admin] Tự động cấp role cho thành viên/người chơi mới khi vừa vào server.")
+    .addRoleOption((option) =>
+      option
+        .setName("role")
+        .setDescription("Role chính sẽ tự động cấp cho người mới (ví dụ: Khách Hàng)")
+        .setRequired(false),
+    )
+    .addRoleOption((option) =>
+      option
+        .setName("role_phu")
+        .setDescription("Role phụ thứ hai muốn cấp cùng (tùy chọn)")
+        .setRequired(false),
+    )
+    .addBooleanOption((option) =>
+      option
+        .setName("tat")
+        .setDescription("Chọn Có để TẮT tính năng tự động cấp role"),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
+    .setName("autorole")
+    .setDescription("Xem trạng thái role tự động cấp cho người mới tham gia server."),
 ];
 
 module.exports = { commands };

@@ -25,6 +25,15 @@ process bot sập. Đã định nghĩa hàm + bọc try/catch toàn bộ web ser
 
 ## 2. Tính năng mới
 
+### 🛡️ Auto-Role cấp vai trò tự động cho người mới
+- Lệnh `/setup-autorole` (Admin):
+  - `role`: Role chính tự động cấp cho người mới vừa vào server (ví dụ: `Khách Hàng` hoặc `Thành Viên`).
+  - `role_phu`: Role phụ thứ hai cấp cùng lúc (ví dụ: `══✿══╡°˖✧ 𝐈𝐍𝟒 ✧˖°╞══✿══`).
+  - `tat`: Tắt tính năng tự cấp role.
+- Lệnh `/autorole`: Xem nhanh trạng thái role tự cấp hiện tại.
+- **Cơ chế thông minh:** Nếu chưa chạy lệnh cài đặt, bot tự động tìm và cấp role `Khách Hàng` / `Thành Viên` và role `IN4` sẵn có trên server.
+- **Lưu ý phân quyền Discord:** Role của Bot trong **Cài đặt máy chủ > Vai trò** phải nằm **TRÊN** role cần cấp thì bot mới có quyền phát role.
+
 ### 🎉 Welcome cư dân mới (thay bot welcome đang dùng)
 - Lệnh `/setup-welcome` (Admin):
   - `channel`: kênh chào mừng
